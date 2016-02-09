@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" schemaVersion="2.3" id="CA_USER_TABLE_COLUMNS_001" applyPrivilegeType="ANALYTIC_PRIVILEGE" checkAnalyticPrivileges="true" defaultClient="$$client$$" defaultLanguage="$$language$$" visibility="internal" calculationScenarioType="SCRIPT_BASED" dataCategory="DEFAULT" enforceSqlExecution="false" executionSemantic="UNDEFINED" scriptParametersCaseSensitive="true">
+  <descriptions defaultDescription="USER_TABLE_COLUMNS"/>
+  <localVariables>
+    <variable id="p_schema_name" parameter="true">
+      <descriptions defaultDescription="p_table_name"/>
+      <variableProperties datatype="VARCHAR" length="128" mandatory="true">
+        <valueDomain type="empty"/>
+        <selection multiLine="false" type="SingleValue"/>
+      </variableProperties>
+    </variable>
+    <variable id="p_table_name" parameter="true">
+      <descriptions defaultDescription="p_table_name"/>
+      <variableProperties datatype="VARCHAR" length="128" mandatory="true">
+        <valueDomain type="empty"/>
+        <selection multiLine="false" type="SingleValue"/>
+      </variableProperties>
+    </variable>
+  </localVariables>
+  <variableMappings/>
+  <dataSources/>
+  <calculationViews>
+    <calculationView xsi:type="Calculation:SqlScriptView" id="Script_View">
+      <viewAttributes>
+        <viewAttribute datatype="VARCHAR" id="COLUMN_NAME" length="128"/>
+        <viewAttribute datatype="INTEGER" id="POSITION"/>
+        <viewAttribute datatype="VARCHAR" id="DATA_TYPE_NAME" length="16"/>
+        <viewAttribute datatype="INTEGER" id="DATA_TYPE_ID"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <localVariable>#p_schema_name</localVariable>
+      <localVariable>#p_table_name</localVariable>
+      <definition> 
+ /********* Begin Procedure Script ************/ 
+ BEGIN 
+ 	 var_out = SELECT COLUMN_NAME, POSITION
+ 	 , DATA_TYPE_NAME, DATA_TYPE_ID
+ 	 FROM SYS.TABLE_COLUMNS
+ 	 WHERE SCHEMA_NAME = :p_schema_name
+ 	 AND   TABLE_NAME = :p_table_name
+ 	 ORDER BY POSITION;
+
+END /********* End Procedure Script ************/</definition>
+    </calculationView>
+  </calculationViews>
+  <logicalModel id="Script_View">
+    <attributes>
+      <attribute id="COLUMN_NAME" order="1">
+        <descriptions defaultDescription="COLUMN_NAME"/>
+        <keyMapping columnObjectName="Script_View" columnName="COLUMN_NAME"/>
+      </attribute>
+      <attribute id="POSITION" order="2">
+        <descriptions defaultDescription="POSITION"/>
+        <keyMapping columnObjectName="Script_View" columnName="POSITION"/>
+      </attribute>
+      <attribute id="DATA_TYPE_NAME" order="3">
+        <descriptions defaultDescription="DATA_TYPE_NAME"/>
+        <keyMapping columnObjectName="Script_View" columnName="DATA_TYPE_NAME"/>
+      </attribute>
+    </attributes>
+    <calculatedAttributes/>
+    <privateDataFoundation>
+      <tableProxies/>
+      <joins/>
+      <layout>
+        <shapes/>
+      </layout>
+    </privateDataFoundation>
+    <baseMeasures>
+      <measure id="DATA_TYPE_ID" order="4" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="DATA_TYPE_ID"/>
+        <measureMapping columnObjectName="Script_View" columnName="DATA_TYPE_ID"/>
+      </measure>
+    </baseMeasures>
+    <calculatedMeasures/>
+    <restrictedMeasures/>
+    <localDimensions/>
+  </logicalModel>
+  <layout>
+    <shapes>
+      <shape modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+        <upperLeftCorner x="40" y="85"/>
+      </shape>
+    </shapes>
+  </layout>
+</Calculation:scenario>

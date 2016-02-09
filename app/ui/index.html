@@ -1,0 +1,107 @@
+<!doctype html>
+<!--
+Copyright 2016 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+    <head>
+        <title>ODXL - CSV example</title>
+        <style type="text/css">
+            body {
+                font-family: sans-serif;
+            }
+            
+            textarea {
+                font-family: monospace;
+            }
+            
+            tr.header td {
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <table>
+            <tr>
+                <td>
+                    Schema:
+                </td>
+                <td>
+                    <select id="selectSchemas">
+                        <option><i>select a schema...</i></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Table:
+                </td>
+                <td>
+                    <select id="selectTables">
+                        <option><i>select a table...</i></option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <table id="columnsTable">
+            <tbody>
+            </tbody>
+        </table>
+        <div id="tableControls">
+            <table>
+                <tr>
+                    <td>Top:</td>
+                    <td><input id="top" type="number" step="100" value="100"/></td>
+                </tr>
+                <tr>
+                    <td>Skip:</td>
+                    <td><input id="skip" type="number" step="100" value="0"/></td>
+                </tr>
+	            <tr>
+					<td>OData URL:</td>
+					<td >
+					   <textarea cols="80", rows="5" id="odataUrl">
+					   </textarea>
+					</td>
+				</tr>
+	        </table>
+
+            <table> 
+                <tr>
+                    <td valign="top">
+			            <div> Download single dataset:</div>
+			            <div> 
+			                as <a id="downloadCsvLink" target="_blank" download="odxl.csv">.csv File</a>
+			            </div>
+			            <div>
+			                as <a id="downloadSheetLink" target="_blank" download="odxl.xlsx">.xlsx Sheet</a>
+			            </div>
+                    </td>
+                    <td valign="top">
+			            <div> Create a workbook:</div>
+			            <div>
+			                <button id="addToWorkbookButton">Add to workbook</button>
+			                <button id="downloadWorkbookButton">Download .xlsx Workbook</button>
+			                <table id="workbookSheets">
+			                </table>
+			            </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+        
+        <script type="text/javascript" src="js/common.js"></script>
+    </body>
+</html>
