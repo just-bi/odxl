@@ -14,15 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */(function(window){
 
+//default format for app OData calls.
 var format = "$format=json";
-	
+
+//parse location to discover service paths
 var location = window.location;
 var path = location.pathname.split("/");
-path.pop();
-path.pop();
-path = path.join("/");
 
-var service = location.protocol + "//" + location.host + path
+path.pop();	//snip off index.html
+path.pop();	//snip off ui
+
+//path of the client
+var appPath = path.join("/");	
+//app OData service endpoint. Used to get list of schema, tables, columns etc. Not required to call ODXL
+var appODataServiceEndpoint = location.protocol + "//" + location.host + appPath + "/services/odxl_user_objects.xsodata/"
+
+path.pop();	//snip off app
+
+//odxl service path
+var servicePath = path.concat(["service"]).join("/");
+//actual odxl service endpoint. This is the actual ODXL service.
+var odxlServiceEndpoint = location.protocol + "//" + location.host + servicePath + "/odxl.xsjs";
 
 var schemaSelector = document.getElementById("selectSchemas");
 function schemaSelectionChanged(){
@@ -64,7 +76,7 @@ function updateDownloadWorkbookButtonState(){
 }
 
 function getOData(query, callback, scope){
-	var url = service + "/services/odxl_user_objects.xsodata/" + query;
+	var url = appODataServiceEndpoint + query;
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", url, true);
 	xhr.setRequestHeader("Accept", "application/json");
@@ -407,16 +419,16 @@ function buildODataQuery(){
 
 function updateDownloadLinks(){
 	var odataQuery = odataUrl.value;
-	var url = service + "/service.xsjs/" + odataQuery + "&$format=";
+	var url = odxlServiceEndpoint + "/" + odataQuery;
 	var fileName = getCurrentTableName() + ".";
 	var extension;
 	
 	extension = "csv";
-	downloadCsvLink.href = url + extension;
+	downloadCsvLink.href = url + "&$format=" + extension + "&download=" + fileName + extension;
 	downloadCsvLink.download = fileName + extension;
 	
 	extension = "xlsx";
-	downloadSheetLink.href = url + extension;
+	downloadSheetLink.href = url + "&$format=" + extension + "&download=" + fileName + extension;
 	downloadSheetLink.download = fileName + extension;
 }
 
@@ -650,7 +662,7 @@ function addToWorkbook(){
 
 function downloadWorkbook(){
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", service + "/service.xsjs/$batch?$format=xlsx", true);
+    xhr.open("POST", odxlServiceEndpoint + "/$batch?$format=xlsx", true);
 
     //http://www.html5rocks.com/en/tutorials/file/xhr2/
     //http://jsfiddle.net/koldev/cw7w5/
