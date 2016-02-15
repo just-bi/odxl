@@ -29,7 +29,11 @@ limitations under the License.
 	function parseRequestPredicates(predicateString){
 		var match, predicates = {}, name, value;
 		var re = /(\s*,\s*)?("[^"]+"|[A-Za-z_][A-Za-z_#$]*)\s*=\s*('([^']|'')+'|[^\),]*)/g;
-		while (match = re.exec(predicateString)) {
+		while (true) {
+			match = re.exec(predicateString);
+			if (!match) {
+				break;
+			}
 			name = match[2];
 			value = match[3];
 			if (value.charAt(0) === "'") {

@@ -29,6 +29,7 @@ limitations under the License.
 		else {
 			error.raise("getDefaultDatabaseInterface", null, "No database interface found!");
 		}
+		return null;
 	}
 	
 	function setDatabaseInterface(dbi){
@@ -463,6 +464,7 @@ limitations under the License.
 		catch (e) {
 			error.raise("queryParameterizedCalculationView", arguments, sql, e);
 		}
+		return null;
 	}
 	/**
 	*	Utility to get all values from a particular column from table into an object.
@@ -544,6 +546,7 @@ limitations under the License.
 		catch (e) {
 			error.raise("createInsertValuesStatement", null, "");
 		}
+		return null;
 	}
 	
 	/*
@@ -628,6 +631,7 @@ limitations under the License.
 		catch (e){
 			error.raise("executeInsertValues", arguments, "", e);
 		}
+		return null;
 	}
 
 	exports.setDatabaseInterface = setDatabaseInterface;

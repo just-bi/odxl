@@ -241,6 +241,7 @@ var XlsxWorkbook;
 				sheetIndex = i;
 				return false;
 			}
+			return true;
 		});
 		return sheetIndex;
 	},
@@ -261,6 +262,7 @@ var XlsxWorkbook;
 				index = i;
 				return false;
 			}
+			return true;
 		});
 		return index;
 	},

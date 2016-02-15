@@ -26,7 +26,7 @@ limitations under the License.
 	 * Mainly configurable to enable testing. 
 	 * Users should probably not configure this and let ODXL figure it out.
 	 */
-	exports.zipInterface = "jszip.xsjslib";
+	//exports.zipInterface = "jszip.xsjslib";
 	//exports.zipInterface = "$.util.Zip";
 	/**
 	 * List of valid values for the OData $format query parameter.

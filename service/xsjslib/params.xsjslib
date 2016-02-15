@@ -75,6 +75,7 @@ limitations under the License.
 						return item.value;
 					}
 				}
+				return null;
 			};
 			parameters = p;
 		}
