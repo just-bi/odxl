@@ -36,6 +36,7 @@
       }
     }
     error.raise("getDefaultZipInterface", null, "No zip interface found.");
+    return null;
   }
   zipInterface = getDefaultZipInterface();
 

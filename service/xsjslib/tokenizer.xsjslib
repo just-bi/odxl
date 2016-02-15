@@ -173,7 +173,7 @@ Tokenizer.prototype = {
     one: function() {
         var match = this.regexp.exec(this._text);
         if (!match) {
-        	return;
+        	return null;
         }
         var text = match[0],
             at = match.index,
@@ -262,8 +262,12 @@ Tokenizer.prototype = {
             token
         ;
         while (this.more()) {
-            if (args[0] = this.one()) {
-                if (func.apply(scope, args) === false) return false;
+        	token = this.one();
+            if (token) {
+            	args[0] = token;
+                if (func.apply(scope, args) === false) {
+                	return false;
+                }
             }
         }
         return true;
