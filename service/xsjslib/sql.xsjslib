@@ -17,6 +17,41 @@ limitations under the License.
 
 	var error = $.import("error.xsjslib");
 	
+	var dbInterface = getDefaultDatabaseInterface();
+	function getDefaultDatabaseInterface(){
+		if ($.hdb) {
+			return "hdb";
+		}
+		else
+		if ($.db) {
+			return "db";
+		}
+		else {
+			error.raise("getDefaultDatabaseInterface", null, "No database interface found!");
+		}
+	}
+	
+	function setDatabaseInterface(dbi){
+		var interfaces = {
+			"hdb": true,
+			"db": true
+		};
+		if (interfaces[dbi] === undefined) {
+			error.raise("setDatabaseInterface", null, "Unknown database interface name " + dbi);
+		}
+		if ($[dbi] === undefined) {
+			error.raise("setDatabaseInterface", null, "Database interface " + dbi + " not available.");
+		}
+		dbInterface = dbi;
+	}
+	
+	function getDatabaseInterface(dbi){
+		if (dbi === undefined){
+			dbi = dbInterface;
+		}
+		return $[dbi];
+	}
+	
 	var connection;
 	/**
 	*	Opens the connection and makes sure autocommit is disabled.
@@ -26,7 +61,8 @@ limitations under the License.
 	*	@function openConnection
 	*/
 	function openConnection(){
-		connection = $.hdb.getConnection();  
+		var dbi = getDatabaseInterface(dbi);
+		connection = dbi.getConnection();  
 		connection.setAutoCommit(false);
 	}
 	
@@ -165,6 +201,240 @@ limitations under the License.
 		}
 		return "(" + placeHolders.join(", ") + ")"; 
 	}
+	
+	var DBResultSet;
+	(DBResultSet = function(resultset){
+		this.resultset = resultset;
+	}).prototype = {
+		iterate: function(callback, scope){
+			var resultset = this.resultset;
+			var metadata = resultset.getMetaData();
+			var extractor, extractors = [], n = metadata.getColumnCount(), i, col;
+			for (i = 1; i <= n; i++) {
+				extractor = {name: metadata.getColumnName(i)};
+				extractors[i] = extractor;
+				switch (metadata.getColumnType(i)){
+					case 1: 	//TINYINT
+					case 2: 	//SMALLINT
+					case 3: 	//INT
+					case 4: 	//BIGINT
+						extractor.func = resultset.getInteger;
+						break;
+					case 5: 	//DECIMAL
+						extractor.func = resultset.getDecimal;
+						break;
+					case 6: 	//REAL
+						extractor.func = resultset.getReal;
+						break;
+					case 7: 	//DOUBLE
+						extractor.func = resultset.getDouble;
+						break;
+					case 8: 	//CHAR
+					case 9: 	//VARCHAR
+						extractor.func = resultset.getString;
+						break;
+					case 10:	//NCHAR
+					case 11:	//NVARCHAR
+						extractor.func = resultset.getNString;
+						break;
+					case 12:	//BINARY
+					case 13:	//VARBINARY
+						extractor.func = resultset.getBString;
+						break;
+					case 14:	//DATE
+						extractor.func = resultset.getDate;
+						break;
+					case 15:	//TIME
+						extractor.func = resultset.getTime;
+						break;
+					case 16:	//TIMESTAMP
+						extractor.func = resultset.getTimestamp;
+						break;
+					case 25:	//CLOB
+						extractor.func = resultset.getClob;
+						break;
+					case 26:	//NCLOB
+						extractor.func = resultset.getNClob;
+						break;
+					case 27:	//BLOB
+						extractor.func = resultset.getBlob;
+						break;
+					case 47:	//SMALLDECIMAL
+						extractor.func = resultset.getDecimal;
+						break;
+					case 51:	//TEXT
+					case 52:	//SHORTTEXT	
+					case 55:	//ALPHANUM
+						extractor.func = resultset.getText;
+						break;
+					case 62:	//SECONDDATE
+						extractor.func = resultset.getSecondDate;
+						break;
+					case 45:	//TABLE
+					default:
+						error.raise("iterate", null, "Don't know which extractor to use for data type: " + metadata.getDataTypeName(i));
+				}
+			}
+			var row, rownum = 0;
+			while (resultset.next()){
+				row = {};
+				for (i = 1; i <= n; i++) {
+					extractor = extractors[i];
+					row[extractor.name] = extractor.func.call(resultset, i);
+				}
+				callback.call(scope || null, rownum, row);
+				rownum += 1;
+			}
+			resultset.close();
+		},
+		getColumnMetadata: function(){
+			var metadata = this.resultset.getMetaData();
+			var ret = [], n = metadata.getColumnCount(), i, col;
+			for (i = 1; i < n; i++) {
+				col = {
+					catalogName: metadata.getCatalogName(i),
+					displaySize: metadata.getColumnDisplaySize(i),
+					label: metadata.getColumnLabel(i),
+					name: metadata.getColumnName(i),
+					type: metadata.getColumnType(i),
+					typeName: metadata.getColumnTypeName(i),
+					precision: metadata.getPrecision(i),
+					scale: metadata.getScale(i),
+					tableName: metadata.getTableName(i),
+					isNullable: true 
+				};
+				ret.push(col);
+			}
+			return ret;
+		}
+	};
+	
+	var HDBResultSet;
+	(HDBResultSet = function(resultset){
+		this.resultset = resultset;
+	}).prototype = {
+		iterate: function(callback, scope){
+			var resultset = this.resultset;
+			var rownum = 0, iterator = resultset.getIterator();
+			while (iterator.next()) {
+				callback.call(scope || null, rownum, iterator.value());
+				rownum += 1;
+			}
+		},
+		getColumnMetadata: function(){
+			return this.resultset.metadata.columns;
+		}
+	};
+	
+	function hdbQuery(sql, parameters){
+		var connection = getConnection();
+		var args = [sql];
+		
+		if (parameters) {
+			var i, n = parameters.length;
+			for (i = 0; i < n; i++) {
+				args.push(parameters[i].value);
+			}
+		}
+		
+		var resultset = connection.executeQuery.apply(connection, args);
+		var hdbResultSet = new HDBResultSet(resultset);
+		return hdbResultSet;
+	}
+	
+	function dbQuery(sql, parameters){
+		var connection = getConnection();
+		var statement = connection.prepareStatement(sql);
+		if (parameters) {
+			var i, parameter, n = parameters.length;
+			for (i = 0; i < n; i++) {
+				parameter = parameters[i];
+				if (parameter === undefined || parameter.value === null) {
+					statement.setNull(i);
+					continue;
+				}
+				switch (parameters[i].type){
+					case 1: 	//TINYINT
+						statement.setTinyInt(i, parameter.value);
+						break;
+					case 2: 	//SMALLINT
+						statement.setSmallInt(i, parameter.value);
+						break;
+					case 3: 	//INT
+						statement.setInteger(i, parameter.value);
+						break;
+					case 4: 	//BIGINT
+						statement.setBigInt(i, parameter.value);
+						break;
+					case 47:	//SMALLDECIMAL
+					case 5: 	//DECIMAL
+						statement.setDecimal(i, parameter.value);
+						break;
+					case 6: 	//REAL
+						statement.setReal(i, parameter.value);
+						break;
+					case 7: 	//DOUBLE
+						statement.setDouble(i, parameter.value);
+						break;
+					case 8: 	//CHAR
+					case 9: 	//VARCHAR
+						statement.setString(i, parameter.value);
+						break;
+					case 10:	//NCHAR
+					case 11:	//NVARCHAR
+						statement.setNString(i, parameter.value);
+						break;
+					case 12:	//BINARY
+					case 13:	//VARBINARY
+						statement.setBString(i, parameter.value);
+						break;
+					case 14:	//DATE
+						statement.setDate(i, parameter.value);
+						break;
+					case 15:	//TIME
+						statement.setTime(i, parameter.value);
+						break;
+					case 16:	//TIMESTAMP
+						statement.setTimestamp(i, parameter.value);
+						break;
+					case 25:	//CLOB
+						statement.setClob(i, parameter.value);
+						break;
+					case 26:	//NCLOB
+						statement.setNClob(i, parameter.value);
+						break;
+					case 27:	//BLOB
+						statement.setBlob(i, parameter.value);
+						break;
+					case 51:	//TEXT
+					case 52:	//SHORTTEXT	
+					case 55:	//ALPHANUM
+						statement.setText(i, parameter.value);
+						break;
+					case 62:	//SECONDDATE
+					case 45:	//TABLE
+					default:
+						error.raise("iterate", null, "Don't know which extractor to use for data type: " + metadata.getDataTypeName(i));
+				}
+			}
+		}
+		var resultset = statement.executeQuery();
+		var dbResultset = new DBResultSet(resultset);
+		return dbResultset;
+	}
+	
+	function executeQuery(sql, parameters){
+		var interfaces = {
+			"db": dbQuery,
+			"hdb": hdbQuery
+		};
+		var func = interfaces[dbInterface];
+		if (func === undefined) {
+			error.raise("executeQuery", null, "No implementation found for database interface " + dbInterface);
+		}
+		var resultset = func.call(null, sql, parameters);
+		return resultset;
+	}
 
 	function queryParameterizedCalculationView(nameObject, parameters){
 		var sql;
@@ -187,7 +457,7 @@ limitations under the License.
 			if (parameters) {
 				sql += "\n" + createCalcViewPlaceholders(parameters);
 			}
-			rs = getConnection().executeQuery(sql);
+			rs = executeQuery(sql);
 			return rs;
 		}
 		catch (e) {
@@ -208,13 +478,11 @@ limitations under the License.
 		var query = " SELECT DISTINCT " + columnName +
 					" FROM   " + fullTableName
 		;  
-		var rs = getConnection().executeQuery(query);
-		var n = rs.length, i, row, value;
-		for (i = 0; i < n; i++) {
-			row = rs[i]; 
+		var value, rs = executeQuery(query);
+		rs.iterate(function(rownum, row){
 			value = row[columnName];
-			list[value] = value; 
-		}
+			list[value] = value;
+		});
 		return list;
 	}
 	
@@ -331,16 +599,6 @@ limitations under the License.
 		return identifier;
 	}
 	
-	function executeQuery(sql){
-		try{
-			var connection = getConnection();
-			var resultset = connection.executeQuery(sql);
-			return resultset;
-		}
-		catch (e){
-			error.raise("executeQuery", arguments, "", e);
-		}
-	}
 	/**
 	*	Insert one row of values and/or expressions into a table.
 	*
@@ -372,6 +630,8 @@ limitations under the License.
 		}
 	}
 
+	exports.setDatabaseInterface = setDatabaseInterface;
+	exports.getDefaultDatabaseInterface = getDefaultDatabaseInterface;
 	exports.openConnection = openConnection;
 	exports.getConnection = getConnection;	
 	exports.rollbackTransaction = rollbackTransaction;
