@@ -58,14 +58,14 @@ limitations under the License.
 		return regexCode.join("");
 	}
 	
-	function getHeaderRow(data, parameters){
+	function getHeaderRow(resultset, parameters){
 		var fieldsep = parameters.fieldsep;
 		var rowsep = parameters.rowsep;
 		var enclosedby = parameters.enclosedby;
 		var escapedby = parameters.escapedby;
 
 		var header = [];
-		var metadata = data.metadata.columns;
+		var metadata = resultset.getColumnMetadata();
 		var i, c, name, n = metadata.length;
 		for (i = 0; i < n; i++) {
 			c = metadata[i];
@@ -86,7 +86,7 @@ limitations under the License.
 		return header;
 	}
 	
-	function createRowWriter(data, parameters){
+	function createRowWriter(resultset, parameters){
 		var rowWriter = [];
 				
 		rowWriter.push("var val, csv = [];");
@@ -122,7 +122,7 @@ limitations under the License.
 			rowWriter.push("var reEsc = /" + getRegexCode(enclosedby) + "/g;");
 		}
 		
-		var metadata = data.metadata.columns;
+		var metadata = resultset.getColumnMetadata();
 		var i, c, n = metadata.length, columnType, columnName;
 		var isArray, isDate;
 		for (i = 0; i < n; i++){
@@ -204,7 +204,6 @@ limitations under the License.
 		
 	function writeResultsetAsCsv(resultset, parameters) {
 		var body = [];
-		var n = resultset.length, i;
 		var rowWriter = createRowWriter(resultset, parameters);
 		
 		//write header row
@@ -213,9 +212,9 @@ limitations under the License.
 		}
 		
 		//write data rows
-		for (i = 0; i < n; i++) {
-			body.push(rowWriter(i, resultset[i]));
-		}
+		resultset.iterate(function(rownum, row){
+			body.push(rowWriter.call(null, rownum, row));
+		});
 		
 		body = body.join(parameters.rowsep);
 		return body;

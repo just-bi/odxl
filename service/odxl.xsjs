@@ -19,8 +19,11 @@ limitations under the License.
 	var error = $.import("xsjslib/error.xsjslib");
 	var params = $.import("xsjslib/params.xsjslib");
 	var sql = $.import("xsjslib/sql.xsjslib");
+	var zip = $.import("xsjslib/zip.xsjslib");
 	var querybuilder = $.import("xsjslib/querybuilder.xsjslib");
 
+	sql.setDatabaseInterface(config.databaseInterface || sql.getDefaultDatabaseInterface());
+	zip.setZipInterface(config.zipInterface || zip.getDefaultZipInterface());
 	var httpStatus;
 	
 	function parseRequestPredicates(predicateString){

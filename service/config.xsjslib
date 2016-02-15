@@ -15,6 +15,20 @@ limitations under the License.
 */
 (function(exports){
 	/**
+	 * The database interface (db, hdb) to use for database interaction.
+	 * Mainly configurable to enable testing. 
+	 * Users should probably not configure this and let ODXL figure it out.
+	 */
+	//exports.databaseInterface = "db";
+	//exports.databaseInterface = "hdb";
+	/**
+	 * The zip interface (jszip, hdb) to use for workbook generation.
+	 * Mainly configurable to enable testing. 
+	 * Users should probably not configure this and let ODXL figure it out.
+	 */
+	exports.zipInterface = "jszip.xsjslib";
+	//exports.zipInterface = "$.util.Zip";
+	/**
 	 * List of valid values for the OData $format query parameter.
 	 * The values map to a mime-type. See contentTypes
 	 */

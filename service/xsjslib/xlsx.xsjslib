@@ -89,7 +89,7 @@ XlsxWorksheet.prototype = {
 		}
 		
 		var i, columnMetadata,
-			columnsMetadata = resultset.metadata.columns, 
+			columnsMetadata = resultset.getColumnMetadata(), 
 			n = columnsMetadata.length, 
 			columnLetter, columnType, columnName,
 			excelType, excelStyle, sharedStringIndex
@@ -195,13 +195,10 @@ XlsxWorksheet.prototype = {
 		
 		rowWriter = rowWriter.join("\n");
 		rowWriter = new Function("ws", "resultset", "rowIndex", rowWriter);
-		
-		var row, iterator = resultset.getIterator();
-		while (iterator.next()){
-			rowIndex += 1;
-			row = iterator.value();
-			rowWriter.call(null, xlsxWorksheet, row, rowIndex);
-		}
+
+		resultset.iterate(function(rownum, row){
+			rowWriter.call(null, xlsxWorksheet, row, rowIndex + 1 + rownum);
+		});
 	}		
 };
 
@@ -210,7 +207,7 @@ var XlsxWorkbook;
 	this.strings = [];
 	this.sheets = [];
 	this.xmlWriter = new xmlWriter.XmlWriter();
-	this.zip = new $.util.Zip();
+	this.contentPackage = {};
 }).prototype = {
 	XLSX_NS_MAIN: XLSX_NS_MAIN,
 	XLSX_NS_RELS: XLSX_NS_RELS,
@@ -223,6 +220,9 @@ var XlsxWorkbook;
 			strings.push(string);
 		}
 		return index;
+	},
+	getContentPackage: function(){
+		return this.contentPackage;
 	},
 	eachSheet: function(callback, scope){
 		var sheets = this.sheets, sheet, i, n = sheets.length;
@@ -555,29 +555,36 @@ var XlsxWorkbook;
 			throw "Could not determine sheet index.";
 		}
 		var entry = "xl/worksheets/Sheet" + (index + 1) + ".xml";
-		var zip = this.zip;
-		if (zip[entry]) {
+		var contentPackage = this.getContentPackage();
+		if (contentPackage[entry]) {
 			return false;
 		}
-		zip[entry] = sheet.asXml();
+		contentPackage[entry] = sheet.asXml();
 		return true;
 	},
+	createArchiveForContentPackage: function(){
+		var zip = $.import("zip.xsjslib");
+		var contentPackage = this.getContentPackage();
+		var archive = zip.generate(contentPackage);
+		return archive;
+	},
 	pack: function(){
-		var zip = this.zip;
+		var contentPackage = this.getContentPackage();
 		
 		this.eachSheet(function(sheet, i){
 			this.packSheet(sheet);
 		});
 
-		zip["[Content_Types].xml"] = this.generateContentTypesXml();
-		zip["_rels/.rels"] = this.generateRels();
-		zip["xl/_rels/workbook.xml.rels"] = this.generateWorkbookRels();
-		zip["xl/workbook.xml"] = this.generateWorkbookXml();
-		zip["xl/styles.xml"] = this.generateStylesXml();
+		contentPackage["[Content_Types].xml"] = this.generateContentTypesXml();
+		contentPackage["_rels/.rels"] = this.generateRels();
+		contentPackage["xl/_rels/workbook.xml.rels"] = this.generateWorkbookRels();
+		contentPackage["xl/workbook.xml"] = this.generateWorkbookXml();
+		contentPackage["xl/styles.xml"] = this.generateStylesXml();
 
 		if (this.hasSharedStrings()){ 
-			zip["xl/sharedStrings.xml"] = this.generateSharedStringsXml();
+			contentPackage["xl/sharedStrings.xml"] = this.generateSharedStringsXml();
 		}
+		var zip = this.createArchiveForContentPackage();
 		return zip;
 	}
 };
