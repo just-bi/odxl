@@ -48,6 +48,7 @@ XmlWriter = function(){
 	this.buffer = [];
 	this.elementStack = [];
 	this.namespaceStack = [];
+	this.elementOpen = false;
 };
 XmlWriter.prototype = {
 	setDefaultNs: function(namespace){
@@ -188,6 +189,7 @@ XmlWriter.prototype = {
 		this.buffer.length = 0;
 		this.elementStack.length = 0;
 		this.namespaceStack.length = 0;
+		this.elementOpen = false;
 	} 
 };
 
