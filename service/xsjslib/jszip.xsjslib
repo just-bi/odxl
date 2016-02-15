@@ -852,7 +852,7 @@
    */
   var prepareFileAttrs = function(o) {
       o = o || {};
-      if (o.base64 === true && (o.binary === null || o.binary === undefined)) {
+      if (o.base64 !== undefined && o.base64 === true && (o.binary === null || o.binary === undefined)) {
           o.binary = true;
       }
       o = extend(o, defaults);

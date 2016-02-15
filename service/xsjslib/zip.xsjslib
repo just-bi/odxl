@@ -18,7 +18,10 @@
       error.raise("setZipInterface", null, "Unrecognized zip interface " + zInterface);
     }
     try {
-      func.call();
+      zipInterface = func.call();
+      if (zipInterface === undefined) {
+    	  error.raise("setZipInterface", null, "Zip interface " + zInterface + " is undefined.");
+      }
       zipInterface = zInterface;
     } catch (e) {
       error.raise("setZipInterface", null, "Could not instantiate zip interface " + zInterface + " (" + e.toString() + ")", e);
