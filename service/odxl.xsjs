@@ -53,8 +53,8 @@ limitations under the License.
 			httpStatus = $.net.http.BAD_REQUEST;
 			error.raise("parseGetRequest", null, "querypath must be specified");
 		}
-		//            1: schema                       /2: table                       3: key 
-		var match = /^("[^"]+"|[A-Za-z_][A-Za-z_#$]*)\/("[^"]+"|[A-Za-z_][A-Za-z_#$]*)(\(\s*("[^"]+"|[A-Za-z_][A-Za-z_#$]*)\s*=\s*([^\),]*)(\s*,\s*("[^"]+"|[A-Za-z_][A-Za-z_#$]*)\s*=\s*([^\),]*))*\s*\))?$/.exec(queryPath);
+		//            1: schema                       /2: table                       3: key                                                                                                               http method
+		var match = /^("[^"]+"|[A-Za-z_][A-Za-z_#$]*)\/("[^"]+"|[A-Za-z_][A-Za-z_#$]*)(\(\s*("[^"]+"|[A-Za-z_][A-Za-z_#$]*)\s*=\s*([^\),]*)(\s*,\s*("[^"]+"|[A-Za-z_][A-Za-z_#$]*)\s*=\s*([^\),]*))*\s*\))?( *HTTP\/\d+\.\d+)?$/.exec(queryPath);
 		if (!match) {
 			httpStatus = $.net.http.BAD_REQUEST;
 			error.raise("parseGetRequest", null, "Invalid querypath " + queryPath + " does not match schema/table pattern.");
@@ -177,7 +177,7 @@ limitations under the License.
 		}
 		var contentType;
 		contentType = $.request.contentType;
-		var match = /multipart\/mixed; boundary=(.+)/.exec(contentType);
+		var match = /multipart\/mixed; *boundary=(.+)/.exec(contentType);
 		if (!match) {
 			error.raise("handlePostRequest", arguments, "Content Type must be multipart/mixed and specify a boundary.");
 		}
