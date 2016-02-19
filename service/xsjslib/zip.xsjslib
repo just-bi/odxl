@@ -47,7 +47,7 @@
 	  var archive = new $.util.Zip();
 	  var k;
 	  for (k in contents) {
-		  archive[k] = contents[k]
+		  archive[k] = contents[k];
 	  }
       return archive;
   }
@@ -67,7 +67,7 @@
 	  });
 	  return archive;
   }
-  
+
   function generateArchive(contents){
     var zipInterfaces = {
     	"$.util.Zip": generateArchiveWithNativeZip,

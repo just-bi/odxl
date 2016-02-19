@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(exports){
-	
+
 	var xlsx = $.import("../xsjslib/xlsx.xsjslib");
 	var params = $.import("../xsjslib/params.xsjslib");
 	params.define({
 		//specify the name of the sheet where the data appears
-		sheetname: {			
+		sheetname: {
 			type: "VARCHAR",
 			mandatory: false
 		},
@@ -54,13 +54,13 @@ limitations under the License.
 			func: function(){
 				return $.request.queryPath;
 			}
-		}, 
+		},
 		path: {
 			type: "s",
 			func: function(){
 				return $.request.path;
 			}
-		}, 
+		},
 		params: {
 			type: "s",
 			func: function(){
@@ -69,17 +69,17 @@ limitations under the License.
 			}
 		}
 	};
-	
+
 	function handleBatchStart(){
 		var xlsxWorkbook = new xlsx.Workbook();
 		return xlsxWorkbook;
 	}
-	
+
 	function handleBatchEnd(batchContext){
 		var archive = batchContext.pack();
 		return archive;
 	}
-	
+
 	function writeMetaFieldsToWorksheet(parameters, xlsxWorksheet){
 		var wb = xlsxWorksheet.getWorkbook();
 		var xw = xlsxWorksheet.getWriter();
@@ -146,12 +146,12 @@ limitations under the License.
 				xw.closeElement();	//v
 				xw.closeElement();	//c
 			}
-			
+
 			xw.closeElement();	//row
 		}
 		return i+1;
 	}
-		
+
 	function generateWorksheet(xlsxWorkbook, parameters, resultset) {
 		var sheetName = parameters.sheetname || "Sheet";
 		var name = sheetName, num = 0;
@@ -172,8 +172,8 @@ limitations under the License.
 
 		xlsxWorksheet.close();
 		return xlsxWorksheet;
-	}	
-	
+	}
+
 	function handleRequest(parameters, contentType, resultset){
 		try {
 			parameters = params.validate();
@@ -191,10 +191,10 @@ limitations under the License.
 			throw e.toString() + " - " + e.linenumber + " " + JSON.stringify(e.stack, "", " ");
 		}
 	}
-	
+
 	exports.handleBatchStart = handleBatchStart;
 	exports.handleBatchPart = generateWorksheet;
 	exports.handleBatchEnd = handleBatchEnd;
 	exports.handleRequest = handleRequest;
-	
+
 }(this));

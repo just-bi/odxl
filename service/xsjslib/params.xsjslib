@@ -16,16 +16,16 @@ limitations under the License.
 (function(exports){
 
 	var err = $.import("error.xsjslib");
-    /** 
+    /**
 	* Defines the url query string parameters expected by the service.
-	* 
+	*
 	* The keys in this object are the internal parameter names.
-	* These correspond to the "name" part of the name/value parts 
+	* These correspond to the "name" part of the name/value parts
 	* that make up the "query" part of the url.
-	* 
+	*
 	* Internal parameter names are always UPPER CASE;
 	* Parameter names in te url query string are always lower case.
-	* 
+	*
 	* The values mapped to the keys are parameterDef objects.
 	* ParameterDef objects have these properties:
 	* - type: database data type. Used to validate the value
@@ -33,7 +33,7 @@ limitations under the License.
 	* - minvalue (optional): minimum allowed value
 	* - maxvalue (optional): maximum allowed value
 	* - method (optional): the HTTP method(s) to which this parameter applies. If not specified, the parameter applies to all methods. If specified, it can be either a string (comma separated list of HTTP methods), or an array (containing each method as a string element)
-	* 
+	*
 	* @var parameterDefs
 	*/
 	var parameterDefs = {};
@@ -44,7 +44,7 @@ limitations under the License.
 		}
 		return method;
 	}
-	
+
 	function getDefaultParameters(parameters) {
 		if (parameters === undefined) {
 			parameters = $.request.parameters;
@@ -53,7 +53,7 @@ limitations under the License.
 			var name, value, p = [];
 			if (typeof parameters === "string") {
 				parameters = parameters.split("&");
-				var i, n = parameters.length, paramObject, paramsObject = {}; 
+				var i, n = parameters.length, paramObject, paramsObject = {};
 				for (i = 0; i < n; i++) {
 					paramObject = parameters[i];
 					paramObject = paramObject.split("=");
@@ -97,7 +97,7 @@ limitations under the License.
 					}
 				}
 				break;
-			case 2: 
+			case 2:
 				parameterDefs[name] = parameterDef;
 				break;
 			default:
@@ -111,23 +111,23 @@ limitations under the License.
 				}
 		}
 	}
-	
+
 	/**
-	*	This is a helper for validateParameters(). 
-	* 
+	*	This is a helper for validateParameters().
+	*
 	*   This checks whether the parameter with the specified name applies to the specified HTTP method.
-	*   
+	*
 	*   @function isParameterApplicableForMethod
 	*   @param parameterName {string} Name of the parameter definition to examine
 	*   @param method {string} HTTP method to search for
 	*/
 	function isParameterApplicableForMethod(parameterName, method){
 		method = getDefaultMethod(method);
-		
+
 		var parameterDef = parameterDefs[parameterName];
 		var parameterDefMethod = parameterDef.methods;
-		
-		
+
+
 		if (parameterDefMethod === undefined) {
 			//parameterDef does not specify any particular method;
 			//this means it applies to all methods
@@ -146,20 +146,20 @@ limitations under the License.
 		}
 		else {
 			err.raise(
-				"isParameterApplicableForMethod", 
+				"isParameterApplicableForMethod",
 				arguments,
 				"Method property of parameter definition " + parameterName + " must be either a string or an array of strings."
 			);
 		}
-		
+
 		//check each method
 		var i, n = parameterDefMethods.length;
 		for (i = 0; i < n; i++) {
 			parameterDefMethod = parameterDefMethods[i];
-			
+
 			if (typeof parameterDefMethod !== "string") {
 				err.raise(
-					"isParameterApplicableForMethod", 
+					"isParameterApplicableForMethod",
 					arguments,
 					"Method property of parameter definition " + parameterName + " must be either a string or an array of strings."
 				);
@@ -169,14 +169,14 @@ limitations under the License.
 				return true;
 			}
 		}
-		
+
 		//no matching method.
 		return false;
 	}
 	/**
-	*	This is a helper for validateParamters(). 
-	* 
-	*	Validates a parameter from the query part of the url  
+	*	This is a helper for validateParamters().
+	*
+	*	Validates a parameter from the query part of the url
 	*	against its corresponding parameter definition
 	*
 	*	If the parameter is found to be invalid, and error is thrown.
@@ -220,7 +220,7 @@ limitations under the License.
 			err.raise(
 				"validateParameter",
 				arguments,
-			    "Value " + parameterValue + " of parameter " + parameterName + 
+			    "Value " + parameterValue + " of parameter " + parameterName +
 				" is smaller than the minimum value " + parameterDef.minvalue
 			);
 		}
@@ -228,7 +228,7 @@ limitations under the License.
 			err.raise(
 				"validateParameter",
 				arguments,
-				"Value " + parameterValue + " of parameter " + parameterName + 
+				"Value " + parameterValue + " of parameter " + parameterName +
 				" is larger than the maximum value " + parameterDef.maxvalue
 			);
 		}
@@ -250,13 +250,13 @@ limitations under the License.
 		}
 		return parameterValue;
 	}
-	
+
 	/**
-	*	Function to validate url query string parameters. 
+	*	Function to validate url query string parameters.
 	*	If validation succeeds, this returns an object representing the canonical parameters.
 	*	Any service functionality that needs to access a paramter, should use that object
 	*	rather than accessing $.request.parameters directly.
-	* 
+	*
 	*	@function validateParameters
 	*	@param the HTTP method
 	*	@return {object} An object that maps canonical (upper case) parameternames to their validated typed value
@@ -277,16 +277,16 @@ limitations under the License.
 		}
 		return parameterValues;
 	}
-	
+
 	function getParameterDefs(){
 		var string = JSON.stringify(parameterDefs);
 		var obj = JSON.parse(string);
 		return obj;
 	}
-	
+
 	exports.define = defineParameter;
 	exports.isDefined = isParameterApplicableForMethod;
 	exports.validate = validateParameters;
 	exports.getDefs = getParameterDefs;
-	
+
 }(this));

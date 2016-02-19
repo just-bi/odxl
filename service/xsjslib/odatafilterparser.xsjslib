@@ -15,8 +15,8 @@ limitations under the License.
 */
 (function(exports){
 
-var Tokenizer = $.import("tokenizer.xsjslib").Tokenizer;	
-	
+var Tokenizer = $.import("tokenizer.xsjslib").Tokenizer;
+
 //file://just-biserver/RedirectedFolders/rbouman/My%20Documents/[MS-ODATA].pdf
 //page 85
 var optypes = {
@@ -341,7 +341,7 @@ ODataFilterParser.prototype = {
     var tokenDefs = this.tokenDefs;
     var tokenizer = this.tokenizer;
     tokenizer.text(text);
-    
+
     tokenizer.each(function(token){
       var tokenDef = tokenDefs[token.type];
       if (!tokenDef) {
@@ -351,12 +351,12 @@ ODataFilterParser.prototype = {
       if (tokenDef.type === optypes.notimplemented) {
         throw new Error("Feature not implemented at token \"" + token.text + " position " + token.at + ".");
       }
-    
+
       token.tokenDef = tokenDef;
-      
+
       prevToken.next = token;
       token.prev = prevToken;
-      
+
 
       token.prevOperator = prevOperator;
       if (tokenDef.type.isOperator) {
@@ -366,7 +366,7 @@ ODataFilterParser.prototype = {
       firstToken.lastToken = token;
       prevToken = token;
     });
-    
+
     var lastRealToken = firstToken.lastToken;
     var lastToken = {
       type: "last",
@@ -396,13 +396,13 @@ ODataFilterParser.prototype = {
   checkOperand: function(operator, operand){
     var operandTokenDef = operand.tokenDef;
     if (operandTokenDef.type !== optypes.operand) {
-      throw "Token is not an operand for \"" + operator.text + "\" at position " + operator.at; 
+      throw "Token is not an operand for \"" + operator.text + "\" at position " + operator.at;
     }
     var operatorTokenDef = operator.tokenDef;
     var operandDataType = operandTokenDef.dataType;
     var operatorOperandDataType = operatorTokenDef.operandDataType;
     if (operandDataType && operatorOperandDataType && operandDataType !== operatorOperandDataType) {
-      throw "Datatype mismatch - operator \"" + operator.text + "\" at position " + operator.at + " requires operand with datatype " + operatorOperandDataType + "; operand \"" +  operand.text + "\" has datatype " + operandDataType; 
+      throw "Datatype mismatch - operator \"" + operator.text + "\" at position " + operator.at + " requires operand with datatype " + operatorOperandDataType + "; operand \"" +  operand.text + "\" has datatype " + operandDataType;
     }
   },
   checkFuncArgs: function(funcToken){
@@ -415,7 +415,7 @@ ODataFilterParser.prototype = {
     }
     args.push(operand);
     funcToken.args = args;
-    
+
     var argDefs = funcToken.tokenDef.args, argDef, arg, argDefDataType, argDataType;
     var i, n = argDefs.length, m = args.length;
     if (m > n) {
@@ -426,7 +426,7 @@ ODataFilterParser.prototype = {
       if (i < m) {
         arg = args[i];
       }
-      else 
+      else
       if (argDef.optional !== true) {
         throw "Argument " + i + " for function " + funcToken.funcName + " at " +  funcToken.at + " is missing.";
       }
@@ -453,14 +453,14 @@ ODataFilterParser.prototype = {
   },
   parse: function(text){
     var firstToken = this.tokenize(text);
-    
+
     var prevOperator = firstToken;
     var token = firstToken;
     var tokenDef, reduced;
 
     var rightDataType;
     var leftDataType;
-    
+
     scan: do {
       token = token.next;
       if (!token) {
@@ -526,7 +526,7 @@ ODataFilterParser.prototype = {
         prevOperator = token;
       }
     } while (true);
-    
+
     var parseTree = this.cleanUpParseTreeNode(prevOperator.leftOperand);
     return parseTree;
   }
