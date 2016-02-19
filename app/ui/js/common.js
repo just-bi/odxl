@@ -25,9 +25,9 @@ path.pop();	//snip off index.html
 path.pop();	//snip off ui
 
 //path of the client
-var appPath = path.join("/");	
+var appPath = path.join("/");
 //app OData service endpoint. Used to get list of schema, tables, columns etc. Not required to call ODXL
-var appODataServiceEndpoint = location.protocol + "//" + location.host + appPath + "/services/odxl_user_objects.xsodata/"
+var appODataServiceEndpoint = location.protocol + "//" + location.host + appPath + "/services/odxl_user_objects.xsodata/";
 
 path.pop();	//snip off app
 
@@ -54,7 +54,7 @@ tableSelector.onchange = tableSelectionChanged;
 var columnsTable = document.getElementById("columnsTable");
 var odataUrl = document.getElementById("odataUrl");
 odataUrl.onchange = updateDownloadLinks;
-	
+
 var tableControls = document.getElementById("tableControls");
 var workbookSheets = document.getElementById("workbookSheets");
 
@@ -84,7 +84,7 @@ function getOData(query, callback, scope){
 		var data = JSON.parse(this.responseText);
 		data = data.d.results;
 		callback.call(scope || null, data);
-	}
+	};
 	xhr.send(null);
 }
 
@@ -111,13 +111,13 @@ function getColumnData(tableName){
 	}
 	predicate = "p_schema_name='" + schemaName + "'";
 
-	var tableName = getCurrentTableName();
+	tableName = getCurrentTableName();
 	if (!tableName) {
 		return;
 	}
 	predicate += ",";
 	predicate += "p_table_name='" + tableName + "'";
-	
+
 	var query = "columns(" + predicate + ")/Results?$orderby=POSITION";
 	getOData(query, populateColumns);
 }
@@ -142,18 +142,18 @@ function populateSelectorWithData(selector, data, column){
 }
 
 function populateSchemaSelector(data){
-	populateSelectorWithData(schemaSelector, data, "SCHEMA_NAME")
+	populateSelectorWithData(schemaSelector, data, "SCHEMA_NAME");
 }
 
 function populateTableSelector(data){
-	populateSelectorWithData(tableSelector, data, "TABLE_NAME")
+	populateSelectorWithData(tableSelector, data, "TABLE_NAME");
 }
 
 function getSelectedValue(selector){
 	var selectedIndex = selector.selectedIndex;
 	if (selectedIndex === 0) {
 		return null;
-	}	
+	}
 	var value = selector.options[selectedIndex].value;
 	return value;
 }
@@ -170,8 +170,8 @@ function getCurrentSchemaName(){
 
 function updateTableControlsVisibility(){
 	var tableName = getCurrentTableName();
-	var display = Boolean(tableName) ? "block" : "none"; 
-	tableControls.style.display = display;	
+	var display = Boolean(tableName) ? "block" : "none";
+	tableControls.style.display = display;
 	updateDownloadWorkbookButtonState();
 }
 
@@ -187,7 +187,7 @@ function clearColumnSelection(){
 
 function clearWorkbooksheets(){
 	clearTableRows(workbookSheets);
-	updateDownloadWorkbookButtonState();	
+	updateDownloadWorkbookButtonState();
 }
 
 function setODataUrl(text){
@@ -269,7 +269,7 @@ function buildODataQuery(){
 					conditionValueInput = cell.firstChild;
 					conditionValue = conditionValueInput.value;
 					if (condition) {
-						if (condition["operator"] === "isnull" || condition["operator"] === "isnotnull"){
+						if (condition.operator === "isnull" || condition.operator === "isnotnull"){
 							conditionValueInput.value = "";
 						}
 						else
@@ -277,10 +277,10 @@ function buildODataQuery(){
 							switch (conditionValueInput.type) {
 								case "":
 									break;
-								case "text": 
-								case "date": 
-								case "datetime-local": 
-								case "time": 
+								case "text":
+								case "date":
+								case "datetime-local":
+								case "time":
 									conditionValue = "'" + conditionValue.replace(/'/g, "''") + "'";
 									break;
 							}
@@ -295,7 +295,7 @@ function buildODataQuery(){
 			}
 		}
 	}
-	
+
 	n = select.length;
 	if (n) {
 		select.sort(function(a, b){
@@ -328,12 +328,12 @@ function buildODataQuery(){
 		if ($filter) {
 			$filter += " and ";
 		}
-		op = condition["operator"];
+		op = condition.operator;
 		if (op === "isnull" || op === "notisnull") {
 			if (op === "isnull") {
 				op = "eq";
 			}
-			else 
+			else
 			if (op === "isnotnull") {
 				op = "neq";
 		    }
@@ -342,12 +342,12 @@ function buildODataQuery(){
 		else {
 			value = condition.value;
 		}
-		$filter += "\"" + columnName + "\" " + op + " " + value; 
+		$filter += "\"" + columnName + "\" " + op + " " + value;
 	}
 	if ($filter) {
 		options.$filter = $filter;
 	}
-	
+
 	var k, v, orderbylist = [];
 	for (k in orderby) {
 		orderbylist.push({
@@ -382,27 +382,28 @@ function buildODataQuery(){
 		}
 		return 0;
 	});
-	var $orderby = [], n = orderbylist.length, item;
+	var $orderby = [], item;
+  n = orderbylist.length;
 	for (i = 0; i < n; i++) {
 		item = orderbylist[i].column;
 		if (orderbylist[i].ascdesc) {
 			item += " " + orderbylist[i].ascdesc;
 		}
-		$orderby.push(item)
+		$orderby.push(item);
 	}
 	$orderby = $orderby.join(",");
 	if ($orderby) {
 		options.$orderby = $orderby;
 	}
-	
+
 	if (skipInput.value) {
 		options.$skip = skipInput.value;
 	}
 	if (topInput.value) {
 		options.$top= topInput.value;
 	}
-		
-	var query = ""
+
+	var query = "";
 	for (k in options) {
 		v = options[k];
 		if (query) {
@@ -422,11 +423,11 @@ function updateDownloadLinks(){
 	var url = odxlServiceEndpoint + "/" + odataQuery;
 	var fileName = getCurrentTableName() + ".";
 	var extension;
-	
+
 	extension = "csv";
 	downloadCsvLink.href = url + "&$format=" + extension + "&download=" + fileName + extension;
 	downloadCsvLink.download = fileName + extension;
-	
+
 	extension = "xlsx";
 	downloadSheetLink.href = url + "&$format=" + extension + "&download=" + fileName + extension;
 	downloadSheetLink.download = fileName + extension;
@@ -435,12 +436,12 @@ function updateDownloadLinks(){
 function createOrdinalSelector(n){
 	var selector = document.createElement("SELECT");
 	var option;
-	
+
 	selector.onchange = buildODataQuery;
 
 	option = document.createElement("OPTION");
 	selector.appendChild(option);
-	
+
 	var i;
 	for (i = 1; i <= n; i++) {
 		option = document.createElement("OPTION");
@@ -453,19 +454,19 @@ function createOrdinalSelector(n){
 function createOptionsSelector(options){
 	var selector = document.createElement("SELECT");
 	var option;
-	
+
 	selector.onchange = buildODataQuery;
 
 	option = document.createElement("OPTION");
 	selector.appendChild(option);
-	
-	for (k in options) {
+
+	for (var k in options) {
 		option = document.createElement("OPTION");
 		option.value = k;
 		option.label = option.innerHTML = options[k];
 		selector.appendChild(option);
 	}
-	
+
 	return selector;
 }
 
@@ -495,11 +496,11 @@ function populateColumns(data){
 	var i, n = data.length, item, prop;
 	var rows = columnsTable.rows, row, cells, cell;
 	var checkbox, input, inputType, min, max, step, dataType;
-	
+
 	row = columnsTable.insertRow(rows.length);
 	row.className = "header";
 	cells = row.cells;
-	
+
 	cell = row.insertCell(cells.length);
 	cell.innerHTML = "Select?";
 
@@ -517,13 +518,13 @@ function populateColumns(data){
 
 	cell = row.insertCell(cells.length);
 	cell.innerHTML = "Asc/Desc";
-	
+
 	cell = row.insertCell(cells.length);
 	cell.innerHTML = "Compare";
 
 	cell = row.insertCell(cells.length);
 	cell.innerHTML = "Value";
-	
+
 	for (i = 0; i < n; i++) {
 		item = data[i];
 		row = columnsTable.insertRow(rows.length);
@@ -539,7 +540,7 @@ function populateColumns(data){
 		checkbox.type = "checkbox";
 		checkbox.click = buildODataQuery;
 		cell.appendChild(checkbox);
-		
+
 		cell = row.insertCell(cells.length);
 		cell.className = "columnName";
 		cell.innerHTML = item.COLUMN_NAME;
@@ -548,7 +549,7 @@ function populateColumns(data){
 		cell.className = "columnName";
 		dataType = item.DATA_TYPE_NAME;
 		cell.innerHTML = dataType;
-		
+
 		cell = row.insertCell(cells.length);
 		cell.className = "ordinal";
 		cell.appendChild(createOrdinalSelector(n));
@@ -560,16 +561,16 @@ function populateColumns(data){
 		cell = row.insertCell(cells.length);
 		cell.className = "ascdesc";
 		cell.appendChild(createAscDescSelector());
-		
+
 		cell = row.insertCell(cells.length);
 		cell.className = "operator";
 		cell.appendChild(createOperatorSelector());
-		
+
 		cell = row.insertCell(cells.length);
 		cell.className = "value";
 		input = document.createElement("INPUT");
 		checkbox.onchange = buildODataQuery;
-		inputType = step = min = max = undefined;		
+		inputType = step = min = max = undefined;
 		switch (item.DATA_TYPE_NAME) {
 			//https://help.sap.com/saphelp_hanaplatform/helpdata/en/20/a1569875191014b507cf392724b7eb/content.htm#loio20a1569875191014b507cf392724b7eb___csql_data_types_1sql_data_types_introduction_datetime
 			case "DATE":
@@ -605,7 +606,7 @@ function populateColumns(data){
 			default:
 				inputType = "text";
 		}
-		
+
 		input.type = inputType;
 		if (step !== undefined) {
 			input.step = step;
@@ -617,10 +618,10 @@ function populateColumns(data){
 			input.max = max;
 		}
 		input.onchange = buildODataQuery;
-		
+
 		cell.appendChild(input);
 	}
-	updateTableControlsVisibility();	
+	updateTableControlsVisibility();
 	buildODataQuery();
 }
 
@@ -648,13 +649,13 @@ function addToWorkbook(){
 	checkbox.checked = true;
 	checkbox.onclick = removeFromWorkbook;
 	cell.appendChild(checkbox);
-	
+
 	cell = row.insertCell(cells.length);
 	var input = document.createElement("INPUT");
 	input.value = getCurrentTableName();
 	input.type = "text";
 	cell.appendChild(input);
-	
+
 	cell = row.insertCell(cells.length);
 	cell.innerHTML = odataUrl.value;
 	updateDownloadWorkbookButtonState();
@@ -682,9 +683,9 @@ function downloadWorkbook(){
   	  a.click();
   	  window.URL.revokeObjectURL(url);
   	  clearWorkbooksheets();
-    }
-    
-    
+    };
+
+
     var boundary = "boundary123";
     xhr.setRequestHeader("Content-Type", "multipart/mixed; boundary=" + boundary);
 
@@ -703,9 +704,9 @@ function downloadWorkbook(){
     body.push("--" + boundary + "--");
     body = body.join("\r\n");
     xhr.send(body);
-	
+
 }
 
 updateTableControlsVisibility();
 getSchemaData();
-}(window))
+}(window));
