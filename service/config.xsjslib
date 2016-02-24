@@ -16,14 +16,14 @@ limitations under the License.
 (function(exports){
 	/**
 	 * The database interface (db, hdb) to use for database interaction.
-	 * Mainly configurable to enable testing. 
+	 * Mainly configurable to enable testing.
 	 * Users should probably not configure this and let ODXL figure it out.
 	 */
 	//exports.databaseInterface = "db";
 	//exports.databaseInterface = "hdb";
 	/**
 	 * The zip interface (jszip, hdb) to use for workbook generation.
-	 * Mainly configurable to enable testing. 
+	 * Mainly configurable to enable testing.
 	 * Users should probably not configure this and let ODXL figure it out.
 	 */
 	//exports.zipInterface = "jszip.xsjslib";
@@ -38,7 +38,7 @@ limitations under the License.
 		"ods": 	"application/vnd.oasis.opendocument.spreadsheet",
 		"zip":  "application/zip"
 	};
-	
+
 	/**
 	 * Maps content types to handlers.
 	 * The odxl service uses this to load and execute the appropriate output handler to deliver data in the response.

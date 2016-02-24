@@ -10,11 +10,11 @@
         <viewAttribute datatype="VARCHAR" id="SCHEMA_NAME" length="12"/>
       </viewAttributes>
       <calculatedViewAttributes/>
-      <definition> 
- /********* Begin Procedure Script ************/ 
- BEGIN 
- 	 var_out = SELECT DISTINCT SCHEMA_NAME 
- 	 FROM SYS.TABLES; 
+      <definition>
+ /********* Begin Procedure Script ************/
+ BEGIN
+ 	 var_out = SELECT DISTINCT SCHEMA_NAME
+ 	 FROM SYS.TABLES;
 
 END /********* End Procedure Script ************/</definition>
     </calculationView>

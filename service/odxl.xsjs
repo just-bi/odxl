@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(){
-	
+
 	var config = $.import("config.xsjslib");
 	var error = $.import("xsjslib/error.xsjslib");
 	var params = $.import("xsjslib/params.xsjslib");
@@ -25,7 +25,7 @@ limitations under the License.
 	sql.setDatabaseInterface(config.databaseInterface || sql.getDefaultDatabaseInterface());
 	zip.setZipInterface(config.zipInterface || zip.getDefaultZipInterface());
 	var httpStatus;
-	
+
 	function parseRequestPredicates(predicateString){
 		var match, predicates = {}, name, value;
 		var re = /(\s*,\s*)?("[^"]+"|[A-Za-z_][A-Za-z_#$]*)\s*=\s*('([^']|'')+'|[^\),]*)/g;
@@ -43,7 +43,7 @@ limitations under the License.
 		}
 		return predicates;
 	}
-	
+
 	function parseGetRequest(queryPath){
 		var req = {};
 		if (queryPath === undefined) {
@@ -63,14 +63,14 @@ limitations under the License.
 		req.tableName = match[2];
 
 		var predicateString = match[3];
-		if (predicateString) {	
+		if (predicateString) {
 			predicateString = predicateString.substr(1, predicateString.length - 2);	//pinch off the left and right parenthesis.
-			var predicates = parseRequestPredicates(predicateString)
+			var predicates = parseRequestPredicates(predicateString);
 			req.predicates = predicates;
 		}
 		return req;
 	}
-		
+
 	function getData(req, parameters){
 		var query = querybuilder.buildQuery(req, parameters);
 		//throw query;
@@ -111,7 +111,7 @@ limitations under the License.
 		}
 		return resultset;
 	}
-	
+
 	function getContentType(parameters){
 		var contentType;
 		var format = parameters.$format;
@@ -127,7 +127,7 @@ limitations under the License.
 		}
 		return contentType;
 	}
-			
+
 	function getContentTypeHandler(contentType){
 		var contentTypeHandler = config.contentTypes[contentType];
 		if (contentTypeHandler === undefined) {
@@ -147,7 +147,7 @@ limitations under the License.
 		}
 		return contentTypeHandler;
 	}
-	
+
 	function createGetReponse(resultset, parameters){
 		var contentType = getContentType(parameters);
 		var contentTypeHandler = getContentTypeHandler(contentType);
@@ -161,7 +161,7 @@ limitations under the License.
 		}
 		return response;
 	}
-	
+
 	function handleGetRequest(parameters){
 		var req = parseGetRequest();
 		var resultset = getData(req, parameters);
@@ -169,7 +169,7 @@ limitations under the License.
 		httpStatus = 200;
 		return response;
 	}
-	
+
 	function handlePostRequest(parameters) {
 		var queryPath = $.request.queryPath;
 		if (queryPath !== "$batch") {
@@ -181,16 +181,16 @@ limitations under the License.
 		if (!match) {
 			error.raise("handlePostRequest", arguments, "Content Type must be multipart/mixed and specify a boundary.");
 		}
-		
+
 		contentType = getContentType(parameters);
 		var contentTypeHandler = getContentTypeHandler(contentType);
 		if (contentTypeHandler.handleBatchStart === undefined || contentTypeHandler.handleBatchPart === undefined || contentTypeHandler.handleBatchEnd === undefined) {
 			throw "$batch requests not supported by content handler for " + contentType;
 		}
-		
+
 		var data, batchContext;
 		batchContext = contentTypeHandler.handleBatchStart(parameters, contentType);
-		
+
 		var entity, i, entities = $.request.entities, n = entities.length;
 		var query, getRequest, getParameters;
 		for (i = 0; i < n; i++){
@@ -215,7 +215,7 @@ limitations under the License.
 			data = getData(getRequest, getParameters);
 			contentTypeHandler.handleBatchPart(batchContext, getParameters, data);
 		}
-		
+
 		var body = contentTypeHandler.handleBatchEnd(batchContext);
 		httpStatus = 200;
 		return {
@@ -225,7 +225,7 @@ limitations under the License.
 			body: body
 		};
 	}
-	
+
 	function checkUnsupportedQueryOptions(parameters){
 		if (parameters.$inlinecount) {
 			httpStatus = $.net.http.BAD_REQUEST;
@@ -236,7 +236,7 @@ limitations under the License.
 			error.raise("handleRequest", null, "OData system query option $expand is not supported.");
 		}
 	}
-	
+
 	function handleRequest(methods, parameters){
 		var method = $.request.headers.get('~request_method').toUpperCase();
 		var httpMethodHandler = methods[method];
@@ -247,13 +247,13 @@ limitations under the License.
 				arguments,
 				"No handler found for method " + method
 			);
-		}				
+		}
 		parameters = params.validate(method, parameters);
 		checkUnsupportedQueryOptions(parameters);
 		var handlerResult = httpMethodHandler(parameters);
 		var downloadFile = parameters.download;
 		if (downloadFile) {
-			handlerResult.headers["Content-Disposition"] = "attachment; filename=" + downloadFile; 
+			handlerResult.headers["Content-Disposition"] = "attachment; filename=" + downloadFile;
 		}
 		return handlerResult;
 	}
@@ -305,7 +305,7 @@ limitations under the License.
 			value: "true"
 		}
 	});
-	
+
 	function main(){
 		try {
 			var response = handleRequest({
@@ -327,7 +327,7 @@ limitations under the License.
 			}
 		}
 		catch (e) {
-			if (!httpStatus) {			
+			if (!httpStatus) {
 				httpStatus = $.net.http.BAD_REQUEST;
 				$.response.contentType = "text/plain";
 				$.response.setBody(e.toString());
@@ -339,6 +339,6 @@ limitations under the License.
 			$.response.status = httpStatus || $.net.http.BAD_REQUEST;
 		}
 	}
-	
+
 	main();
 }());

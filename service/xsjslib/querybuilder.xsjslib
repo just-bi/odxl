@@ -14,25 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(exports){
-	
+
 	function buildQuerySelectClause(req, parameters, query){
 		query.push("SELECT");
 
-		var select = parameters["$select"];
+		var select = parameters.$select;
 		if (select) {
 			select = select.split(",");
 			var i, n = select.length;
 			for (i = 0; i < n; i++) {
 				select[i] = sql.checkIdentifier(select[i], true);
 			}
-			select = parameters["$select"];
+			select = parameters.$select;
 		}
 		else {
 			select = "*";
 		}
 		query.push(select);
 	}
-	
+
 	function buildQueryFromClause(req, parameters, query){
 		query.push("FROM");
 		var tableName = req.tableName;
@@ -48,11 +48,11 @@ limitations under the License.
 		}
 		query.push(stmt);
 	}
-	
+
 	function odataFilterPrecedenceParser(filter){
 		var tokenizer = new tokenizer.Tokenizer();
 	}
-	
+
 	function translateFilterParseTreeToSql(node){
 		var str = "";
 		switch (node.type) {
@@ -102,7 +102,7 @@ limitations under the License.
 					  "le": "<=",
 					  "and": "AND",
 					  "or": "OR",
-					}
+					};
 					left = translateFilterParseTreeToSql(left);
 					right = translateFilterParseTreeToSql(right);
 					if (node.text === "mod") {
@@ -129,10 +129,10 @@ limitations under the License.
 				var needle = translateFilterParseTreeToSql(node.args[1]);
 				switch (node.funcName) {
 					case "endswith":
-						str = "RIGHT(" + haystack + ", LENGTH(" + needle + ")) = " + needle; 
+						str = "RIGHT(" + haystack + ", LENGTH(" + needle + ")) = " + needle;
 						break;
 					case "startswith":
-						str = "LEFT(" + haystack + ", LENGTH(" + needle + ")) = " + needle; 
+						str = "LEFT(" + haystack + ", LENGTH(" + needle + ")) = " + needle;
 						break;
 					default:
 						httpStatus = $.net.http.INTERNAL_SERVER_ERROR;
@@ -237,28 +237,28 @@ limitations under the License.
 		}
 		return str;
 	}
-		
+
 	function buildQueryWhereClause(req, parameters, query){
-		var filter = parameters["$filter"];
+		var filter = parameters.$filter;
 		if (!filter) {
 			return;
 		}
-		
+
 		var odatafilterparser = $.import("odatafilterparser.xsjslib");
 		var parser = new odatafilterparser.ODataFilterParser();
-		
+
 		query.push("WHERE");
 
 		var parseTree = parser.parse(filter);
 		query.push(translateFilterParseTreeToSql(parseTree));
 	}
-	
+
 	function buildQueryOrderByClause(req, parameters, query){
-		var orderby = parameters["$orderby"];
+		var orderby = parameters.$orderby;
 		if (!orderby) {
 			return;
 		}
-		orderby = orderby.split(",")
+		orderby = orderby.split(",");
 		var i, n = orderby.length;
 		for (i = 0; i < n; i++) {
 			if (!/^\s*(\"[^\"]+\"|[_A-Z][A-Z0-9_#$]*)(\s+(asc|desc)\s*)?$/.test(orderby[i])) {
@@ -266,12 +266,12 @@ limitations under the License.
 			}
 		}
 		query.push("ORDER BY");
-		query.push(parameters["$orderby"]);
+		query.push(parameters.$orderby);
 	}
-	
+
 	function buildQueryLimitClause(req, parameters, query) {
-		var top = parameters["$top"];
-		var skip = parameters["$skip"];
+		var top = parameters.$top;
+		var skip = parameters.$skip;
 		if (!top && !skip) {
 			return;
 		}
@@ -286,7 +286,7 @@ limitations under the License.
 		query.push("OFFSET");
 		query.push(skip);
 	}
-	
+
 	function buildQuery(req, parameters){
 		var query = [];
 

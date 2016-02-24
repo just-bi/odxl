@@ -78,7 +78,7 @@ XlsxWorksheet.prototype = {
 	close: function(){
 		var xw = this.getWriter();
 		xw.closeElement();	//sheetData
-		xw.closeElement();	//worksheet			
+		xw.closeElement();	//worksheet
 	},
 	writeResultset: function(resultset, xlsxWorksheet, rowIndex) {
 		var xw = this.getWriter();
@@ -87,10 +87,10 @@ XlsxWorksheet.prototype = {
 		if (rowIndex === undefined) {
 			rowIndex = 1;
 		}
-		
+
 		var i, columnMetadata,
-			columnsMetadata = resultset.getColumnMetadata(), 
-			n = columnsMetadata.length, 
+			columnsMetadata = resultset.getColumnMetadata(),
+			n = columnsMetadata.length,
 			columnLetter, columnType, columnName,
 			excelType, excelStyle, sharedStringIndex
 		;
@@ -99,27 +99,27 @@ XlsxWorksheet.prototype = {
 		xw.writeAttribute("r", rowIndex);
 
 		var rowWriter = [];
-		rowWriter.push("var wb = ws.getWorkbook(), ns = wb.XLSX_NS_MAIN, xw = ws.getWriter(), v;");		
+		rowWriter.push("var wb = ws.getWorkbook(), ns = wb.XLSX_NS_MAIN, xw = ws.getWriter(), v;");
 		rowWriter.push("xw.openElement(\"row\", ns);");
 		rowWriter.push("xw.writeAttribute(\"r\", rowIndex);");
-		
+
 		for (i = 0; i < n; i++) {
 			columnLetter = xlsxIntToColumnLetter(i + 1);
 			columnMetadata = columnsMetadata[i];
 			columnName = columnMetadata.name;
 			columnType = columnMetadata.type;
-				
+
 			xw.openElement("c", XLSX_NS_MAIN);
 			xw.writeAttributes({
 				r: columnLetter + rowIndex,
 				s: 0,
 				t: "s",
 			});
-			
+
 			rowWriter.push("");
 			rowWriter.push("v = resultset[\"" + columnName + "\"];");
 			rowWriter.push("if (v !== null) {");
-			rowWriter.push("  xw.openElement(\"c\", ns);");			
+			rowWriter.push("  xw.openElement(\"c\", ns);");
 
 			excelStyle = null;
 			switch (columnType) {
@@ -132,7 +132,7 @@ XlsxWorksheet.prototype = {
 				case 7: 	//double
 				case 47: 	//smalldecimal
 					//excel number type
-					excelType = "n";	
+					excelType = "n";
 					break;
 				case 12:	//binary
 				case 13:	//varbinary
@@ -140,7 +140,7 @@ XlsxWorksheet.prototype = {
 				case 51:	//text
 				case 75:	//ST_POINT
 					rowWriter.push("  v = String.fromCharCode.apply(null, new Uint16Array(v));");
-					//fallthrough
+					/* falls through */
 				case 8: 	//char
 				case 9:	 	//varchar
 				case 10:	//nchar
@@ -150,7 +150,7 @@ XlsxWorksheet.prototype = {
 				case 53:	//shorttext
 				case 54:	//alphanum
 					//excel shared string type.
-					excelType = "s";	
+					excelType = "s";
 					rowWriter.push("  v = wb.getSharedStringIndex(v);");
 					break;
 				case 14:	//date
@@ -170,36 +170,41 @@ XlsxWorksheet.prototype = {
 			rowWriter.push("  xw.writeAttributes({");
 			rowWriter.push("    r: \"" + columnLetter + "\" + rowIndex,");
 			if (excelStyle) {
-				rowWriter.push("    s: \"" + excelStyle + "\",");			
+				rowWriter.push("    s: \"" + excelStyle + "\",");
 			}
-			rowWriter.push("    t: \"" + excelType + "\"");			
-			rowWriter.push("  });");			
-			
-			xw.openElement("v", XLSX_NS_MAIN);			
-			rowWriter.push("  xw.openElement(\"v\", ns);");			
-			
+			rowWriter.push("    t: \"" + excelType + "\"");
+			rowWriter.push("  });");
+
+			xw.openElement("v", XLSX_NS_MAIN);
+			rowWriter.push("  xw.openElement(\"v\", ns);");
+
 			sharedStringIndex = wb.getSharedStringIndex(columnMetadata.label || columnName);
 			xw.writeText(sharedStringIndex);
-			rowWriter.push("  xw.writeText(v);");			
-			
+			rowWriter.push("  xw.writeText(v);");
+
 			xw.closeElement(); //v
 			rowWriter.push("  xw.closeElement(); //v");
 			xw.closeElement(); //c
 			rowWriter.push("  xw.closeElement(); //c");
 
-			rowWriter.push("} //if (v !== null)");				
-			
+			rowWriter.push("} //if (v !== null)");
+
 		}
 		xw.closeElement(); //row
 		rowWriter.push("xw.closeElement(); //row");	//r
-		
+
 		rowWriter = rowWriter.join("\n");
+
+    /* Turn off JSHint warnings for this statement as it is intended
+       to be a form of eval in order to deal with generated code. */
+    /* jshint ignore:start */
 		rowWriter = new Function("ws", "resultset", "rowIndex", rowWriter);
+    /* jshint ignore:end */
 
 		resultset.iterate(function(rownum, row){
 			rowWriter.call(null, xlsxWorksheet, row, rowIndex + 1 + rownum);
 		});
-	}		
+	}
 };
 
 var XlsxWorkbook;
@@ -326,7 +331,7 @@ var XlsxWorkbook;
 			"ContentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
 		});
 		xw.closeElement();
-		
+
 		//worksheets
 		this.eachSheet(function(sheet, i){
 			xw.openElement("Override", this.XLSX_NS_CONTENT_TYPES);
@@ -336,7 +341,7 @@ var XlsxWorkbook;
 			});
 			xw.closeElement();
 		});
-		
+
 		//styles.xml
 		xw.openElement("Override", XLSX_NS_CONTENT_TYPES);
 		xw.writeAttributes({
@@ -344,7 +349,7 @@ var XlsxWorkbook;
 			"ContentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"
 		});
 		xw.closeElement();
-		
+
 		//shared strings
 		if (this.hasSharedStrings()) {
 			xw.openElement("Override", XLSX_NS_CONTENT_TYPES);
@@ -354,10 +359,10 @@ var XlsxWorkbook;
 			});
 			xw.closeElement();
 		}
-		
+
 		//Types
 		xw.closeElement();
-		
+
 		return xw.asXml();
 	},
 	generateWorkbookXml: function(){
@@ -368,7 +373,7 @@ var XlsxWorkbook;
 		xw.openElement("workbook");
 		xw.declareNs("", ns);
 		xw.declareNs("ns1", this.XLSX_NS_RELS);
-		
+
 		xw.openElement("sheets", ns);
 		this.eachSheet(function(sheet, i){
 			var id = i + 1;
@@ -401,14 +406,14 @@ var XlsxWorkbook;
 		xw.closeElement();
 
 		xw.closeElement();
-		
+
 		//fills
 		xw.openElement("fills", ns);
 		xw.writeAttribute("count", 1);
 
 		xw.openElement("fill", ns);
 		xw.closeElement();
-		
+
 		xw.closeElement();
 
 		//borders
@@ -423,17 +428,17 @@ var XlsxWorkbook;
 		//cellStyleXfs
 		xw.openElement("cellStyleXfs", ns);
 		xw.writeAttribute("count", 1);
-		
+
 		xw.openElement("xf", ns);
 		xw.writeAttribute("numFmtId", 0);
 		xw.closeElement();
-		
+
 		xw.closeElement();
 
 		//cellXfs
 		xw.openElement("cellXfs", ns);
 		xw.writeAttribute("count", 1);
-		
+
 		xw.openElement("xf", ns);
 		xw.writeAttribute("numFmtId", 0);
 		xw.closeElement();
@@ -441,9 +446,9 @@ var XlsxWorkbook;
 		xw.openElement("xf", ns);
 		xw.writeAttribute("numFmtId", 14);
 		xw.closeElement();
-		
+
 		xw.closeElement();
-		
+
 		//cellStyles
 		//xw.openElement("cellStyles", ns);
 		//xw.writeAttribute("count", 0);
@@ -453,7 +458,7 @@ var XlsxWorkbook;
 		xw.openElement("dxfs", ns);
 		xw.writeAttribute("count", 0);
 		xw.closeElement();
-		
+
 		//tableStyles
 		xw.openElement("tableStyles", ns);
 		xw.writeAttribute("count", 0);
@@ -482,7 +487,7 @@ var XlsxWorkbook;
 			});
 			xw.closeElement();	//Relationship
 		});
-		
+
 		//styles.xml
 		xw.openElement("Relationship", ns);
 		id += 1;
@@ -492,7 +497,7 @@ var XlsxWorkbook;
 			Target: "styles.xml"
 		});
 		xw.closeElement();	//Relationship
-		
+
 		//sharedStrings.xml
 		if (this.hasSharedStrings()) {
 			xw.openElement("Relationship", ns);
@@ -504,7 +509,7 @@ var XlsxWorkbook;
 			});
 			xw.closeElement();	//Relationship
 		}
-		
+
 		xw.closeElement();	//Relationships
 		return xw.asXml();
 	},
@@ -544,7 +549,7 @@ var XlsxWorkbook;
 			xw.closeElement();	//t
 			xw.closeElement();	//si
 		});
-		
+
 		xw.closeElement();	//sst
 		return xw.asXml();
 	},
@@ -572,7 +577,7 @@ var XlsxWorkbook;
 	},
 	pack: function(){
 		var contentPackage = this.getContentPackage();
-		
+
 		this.eachSheet(function(sheet, i){
 			this.packSheet(sheet);
 		});
@@ -583,14 +588,14 @@ var XlsxWorkbook;
 		contentPackage["xl/workbook.xml"] = this.generateWorkbookXml();
 		contentPackage["xl/styles.xml"] = this.generateStylesXml();
 
-		if (this.hasSharedStrings()){ 
+		if (this.hasSharedStrings()){
 			contentPackage["xl/sharedStrings.xml"] = this.generateSharedStringsXml();
 		}
 		var zip = this.createArchiveForContentPackage();
 		return zip;
 	}
 };
-	
+
 exports.Workbook = XlsxWorkbook;
 
 }(this));

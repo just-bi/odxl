@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(exports){
-	
+
 /*********************************************
-* 
+*
 * 	Error handling
-* 
+*
 ********************************************/
 	function throwError(func, args, message, error){
 		args = null;
@@ -33,7 +33,7 @@ limitations under the License.
 		};
 		throw err;
 	}
-	
+
 	exports.raise = throwError;
-	
+
 }(this));

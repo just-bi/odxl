@@ -16,7 +16,7 @@ limitations under the License.
 (function(exports){
 
 	var error = $.import("error.xsjslib");
-	
+
 	var dbInterface = getDefaultDatabaseInterface();
 	function getDefaultDatabaseInterface(){
 		if ($.hdb) {
@@ -31,7 +31,7 @@ limitations under the License.
 		}
 		return null;
 	}
-	
+
 	function setDatabaseInterface(dbi){
 		var interfaces = {
 			"hdb": true,
@@ -45,28 +45,28 @@ limitations under the License.
 		}
 		dbInterface = dbi;
 	}
-	
+
 	function getDatabaseInterface(dbi){
 		if (dbi === undefined){
 			dbi = dbInterface;
 		}
 		return $[dbi];
 	}
-	
+
 	var connection;
 	/**
 	*	Opens the connection and makes sure autocommit is disabled.
-	*	We require this becuase typically our interaction with the 
+	*	We require this becuase typically our interaction with the
 	*	db spans multiple statements
-	*	
+	*
 	*	@function openConnection
 	*/
 	function openConnection(){
 		var dbi = getDatabaseInterface(dbi);
-		connection = dbi.getConnection();  
+		connection = dbi.getConnection();
 		connection.setAutoCommit(false);
 	}
-	
+
 	function rollbackTransaction(){
 		if (connection) {
 			connection.rollback();
@@ -89,7 +89,7 @@ limitations under the License.
 	}
 	/**
 	*	Closes the connection
-	*	
+	*
 	*	@function closeConnection
 	*/
 	function closeConnection(){
@@ -100,7 +100,7 @@ limitations under the License.
 		connection = undefined;
 		return true;
 	}
-	
+
 	function makeObjectName(namesObject){
 		var fullName, contextName, packageName;
 		switch (typeof namesObject) {
@@ -111,22 +111,22 @@ limitations under the License.
 				break;
 			case "object":
 				break;
-			default: 
+			default:
 				error.raise(
-					"makeObjectName", 
+					"makeObjectName",
 					arguments,
 					"Invalid name object."
 				);
 		}
 		fullName = namesObject.objectName;
-		
+
 		contextName = namesObject.contextName;
 		if (contextName) {
 			fullName = contextName + "." + fullName;
 		}
 
 		packageName = namesObject.packageName;
-		
+
 		if (namesObject.subPackageName) {
 			packageName += "." + namesObject.subPackageName;
 		}
@@ -135,7 +135,7 @@ limitations under the License.
 		fullName = "\"" + fullName + "\"";
 		return fullName;
 	}
-	
+
 	/**
 	*	Create a fully qualified table name from the names in the nameObject parameter.
 	*	The namesObject parameter has the following keys:
@@ -147,9 +147,9 @@ limitations under the License.
 	*
 	*	All these items, except the tableName, will be defaulted with defaults if not specified.
 	*
-	*	Alternatively, you can also pass a single string representing the unqalified tablename. 
+	*	Alternatively, you can also pass a single string representing the unqalified tablename.
 	*	In that case, defaults will be used for all other name parts.
-	* 
+	*
 	*	@function makeTableName
 	*	@param {object|string} namesObject Either a bag of different types of names that together make up a fully qualified table name, or a string representing a plain unqualified table name.
 	*	@return {string} A single string that represents a fully qualified table name.
@@ -159,15 +159,15 @@ limitations under the License.
 
 		if (typeof namesObject === "string"){
 			namesObject = {
-				objectName: namesObject	
+				objectName: namesObject
 			};
-		}		
-		
+		}
+
 		fullName = makeObjectName(namesObject);
 
 		schemaName = namesObject.schemaName;
 		schemaName = "\"" + schemaName + "\"";
-			
+
 		fullName = schemaName + "." + fullName;
 		return fullName;
 	}
@@ -177,22 +177,22 @@ limitations under the License.
 
 		if (typeof namesObject === "string"){
 			namesObject = {
-				objectName: namesObject	
+				objectName: namesObject
 			};
-		}		
+		}
 		fullName = makeObjectName(namesObject);
 		return fullName;
 	}
-	
+
 	function createCalcViewPlaceholder(name, value) {
 		name = name.replace(/'/g, "''");
 		value = String(value).replace(/'/g, "''");
 		return "'PLACEHOLDER' = ('$$" + name + "$$', '" + value + "')";
 	}
-	
+
 	function createCalcViewPlaceholders(parameters) {
 		var placeHolders = [];
-		var name, calcViewPlaceHolder, value; 
+		var name, calcViewPlaceHolder, value;
 		for (name in parameters) {
 			if (parameters.hasOwnProperty(name)) {
 				value = parameters[name];
@@ -200,9 +200,9 @@ limitations under the License.
 				placeHolders.push(calcViewPlaceHolder);
 			}
 		}
-		return "(" + placeHolders.join(", ") + ")"; 
+		return "(" + placeHolders.join(", ") + ")";
 	}
-	
+
 	var DBResultSet;
 	(DBResultSet = function(resultset){
 		this.resultset = resultset;
@@ -264,7 +264,7 @@ limitations under the License.
 						extractor.func = resultset.getDecimal;
 						break;
 					case 51:	//TEXT
-					case 52:	//SHORTTEXT	
+					case 52:	//SHORTTEXT
 					case 55:	//ALPHANUM
 						extractor.func = resultset.getText;
 						break;
@@ -272,6 +272,7 @@ limitations under the License.
 						extractor.func = resultset.getSecondDate;
 						break;
 					case 45:	//TABLE
+            /* falls through */
 					default:
 						error.raise("iterate", null, "Don't know which extractor to use for data type: " + metadata.getDataTypeName(i));
 				}
@@ -302,14 +303,14 @@ limitations under the License.
 					precision: metadata.getPrecision(i),
 					scale: metadata.getScale(i),
 					tableName: metadata.getTableName(i),
-					isNullable: true 
+					isNullable: true
 				};
 				ret.push(col);
 			}
 			return ret;
 		}
 	};
-	
+
 	var HDBResultSet;
 	(HDBResultSet = function(resultset){
 		this.resultset = resultset;
@@ -326,23 +327,23 @@ limitations under the License.
 			return this.resultset.metadata.columns;
 		}
 	};
-	
+
 	function hdbQuery(sql, parameters){
 		var connection = getConnection();
 		var args = [sql];
-		
+
 		if (parameters) {
 			var i, n = parameters.length;
 			for (i = 0; i < n; i++) {
 				args.push(parameters[i].value);
 			}
 		}
-		
+
 		var resultset = connection.executeQuery.apply(connection, args);
 		var hdbResultSet = new HDBResultSet(resultset);
 		return hdbResultSet;
 	}
-	
+
 	function dbQuery(sql, parameters){
 		var connection = getConnection();
 		var statement = connection.prepareStatement(sql);
@@ -408,12 +409,13 @@ limitations under the License.
 						statement.setBlob(i, parameter.value);
 						break;
 					case 51:	//TEXT
-					case 52:	//SHORTTEXT	
+					case 52:	//SHORTTEXT
 					case 55:	//ALPHANUM
 						statement.setText(i, parameter.value);
 						break;
 					case 62:	//SECONDDATE
 					case 45:	//TABLE
+            /* falls through */
 					default:
 						error.raise("iterate", null, "Don't know which extractor to use for data type: " + metadata.getDataTypeName(i));
 				}
@@ -423,7 +425,7 @@ limitations under the License.
 		var dbResultset = new DBResultSet(resultset);
 		return dbResultset;
 	}
-	
+
 	function executeQuery(sql, parameters){
 		var interfaces = {
 			"db": dbQuery,
@@ -446,12 +448,12 @@ limitations under the License.
 					tableName: nameObject
 				};
 			}
-			
-			var tableName = "\"_SYS_BIC\"." + 
-			                "\"" + 
-							nameObject.packageName + "."  + 
-							nameObject.subPackageName + "/" + 
-							nameObject.tableName + 
+
+			var tableName = "\"_SYS_BIC\"." +
+			                "\"" +
+							nameObject.packageName + "."  +
+							nameObject.subPackageName + "/" +
+							nameObject.tableName +
 			                "\""
 			;
 			sql = "SELECT * FROM " + tableName;
@@ -474,12 +476,12 @@ limitations under the License.
 	*	@return an object with column values as both keys and values.
 	*/
 	function getRowList(namesObject){
-		var list = {}; 
+		var list = {};
 		var fullTableName = makeTableName(namesObject);
 		var columnName = namesObject.columnName;
 		var query = " SELECT DISTINCT " + columnName +
 					" FROM   " + fullTableName
-		;  
+		;
 		var value, rs = executeQuery(query);
 		rs.iterate(function(rownum, row){
 			value = row[columnName];
@@ -487,13 +489,13 @@ limitations under the License.
 		});
 		return list;
 	}
-	
+
 	function getColumnAssignment(columnAssignments, columnName){
 		var columnAssignment = columnAssignments[columnName];
 		switch (typeof columnAssignment) {
 			case "undefined":
 				columnAssignment = null;
-				//fallthrough
+				/* falls through */
 			case "object":
 				if (columnAssignment === null) {
 					columnAssignment = {expression: "NULL"};
@@ -505,8 +507,8 @@ limitations under the License.
 		return columnAssignment;
 	}
 	/**
-	*	Create the SQL for a INSERT INTO <table>(<columns...>) VALUES (<expressions and parameters>) statement  
-	* 
+	*	Create the SQL for a INSERT INTO <table>(<columns...>) VALUES (<expressions and parameters>) statement
+	*
 	*	@function createInsertValuesStatement
 	*   @param {object|string} namesObject
 	*   @param {object|string} columnAssignments
@@ -525,7 +527,7 @@ limitations under the License.
 					if (columnAssignment.expression !== undefined) {
 						parameters.push(columnAssignment.expression);
 					}
-					else 
+					else
 					if (columnAssignment.value !== undefined) {
 						parameters.push("?");
 					}
@@ -534,8 +536,8 @@ limitations under the License.
 
 			columns 	= "(" + columns.join(",") + ")";
 			parameters	= "(" + parameters.join(",") + ")";
-			
-			var sql = 	"insert "			+ 
+
+			var sql = 	"insert "			+
 						"into " + tableName	+
 			 			columns				+
 			 			"values" 			+
@@ -548,18 +550,18 @@ limitations under the License.
 		}
 		return null;
 	}
-	
+
 	/*
-	*	A place to cache procedures. This is used by callProcedure() 
-	*	and should not be accessed directly.	
-	* 
+	*	A place to cache procedures. This is used by callProcedure()
+	*	and should not be accessed directly.
+	*
 	*	@var procedureCache
 	*/
 	var procedureCache = {};
-	
+
 	/**
 	*	A function to call a database stored procedure.
-	*	
+	*
 	*	@function callProcedure
 	*	@param namesObject {object |string} name of the procedure.
 	*	@param parametersObject {object} Name/value pairs to use as procedure parameters.
@@ -574,20 +576,20 @@ limitations under the License.
 			procedureCache[schemaName] = schema;
 		}
 		var procName = makeProcedureName(namesObject);
-		
+
 		var proc = schema[procName];
 		var connection = getConnection();
 		if (!proc) {
 			proc = connection.loadProcedure(schemaName, procName);
 			schema[procName] = proc;
 		}
-		
+
 		var result;
 		result = proc.call(connection, parametersObject);
-		
+
 		return result;
 	}
-	
+
 	//https://help.sap.com/saphelp_hanaplatform/helpdata/en/20/9f5020751910148fd8fe88aa4d79d9/content.htm
 	function checkIdentifier(identifier, quote){
 		var match = /^\"[^\"]+\"|[_A-Za-z][A-Za-z0-9_#$]*$/.exec(identifier);
@@ -601,11 +603,11 @@ limitations under the License.
 		}
 		return identifier;
 	}
-	
+
 	/**
 	*	Insert one row of values and/or expressions into a table.
 	*
-	*	@function executeInsertValues 
+	*	@function executeInsertValues
 	*	@param namesObject {object | string} Table name or name object.
 	*	@param columnAssignments {object} Object mapping column names to values or SQL expressions
 	*	@return {int} the number of rows inserted. Should be 1.
@@ -617,7 +619,7 @@ limitations under the License.
 			for (columnName in columnAssignments) {
 				if (columnAssignments.hasOwnProperty(columnName)){
 					columnAssignment = getColumnAssignment(columnAssignments, columnName);
-					
+
 					if (columnAssignment.value !== undefined) {
 						values.push(columnAssignment.value);
 					}
@@ -637,7 +639,7 @@ limitations under the License.
 	exports.setDatabaseInterface = setDatabaseInterface;
 	exports.getDefaultDatabaseInterface = getDefaultDatabaseInterface;
 	exports.openConnection = openConnection;
-	exports.getConnection = getConnection;	
+	exports.getConnection = getConnection;
 	exports.rollbackTransaction = rollbackTransaction;
 	exports.commitTransaction = commitTransaction;
 	exports.closeConnection = closeConnection;
@@ -650,5 +652,5 @@ limitations under the License.
 	exports.makeTableName = makeTableName;
 	exports.checkIdentifier = checkIdentifier;
 	exports.createCalcViewPlaceholders = createCalcViewPlaceholders;
-	
+
 }(this));

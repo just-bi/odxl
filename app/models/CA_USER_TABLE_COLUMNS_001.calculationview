@@ -30,9 +30,9 @@
       <calculatedViewAttributes/>
       <localVariable>#p_schema_name</localVariable>
       <localVariable>#p_table_name</localVariable>
-      <definition> 
- /********* Begin Procedure Script ************/ 
- BEGIN 
+      <definition>
+ /********* Begin Procedure Script ************/
+ BEGIN
  	 var_out = SELECT COLUMN_NAME, POSITION
  	 , DATA_TYPE_NAME, DATA_TYPE_ID
  	 FROM SYS.TABLE_COLUMNS

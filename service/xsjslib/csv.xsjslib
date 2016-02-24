@@ -15,7 +15,7 @@ limitations under the License.
 */
 (function(exports){
 	//https://tools.ietf.org/html/rfc4180
-	
+
 	var error = $.import("error.xsjslib");
 
 	function getChars(string){
@@ -26,7 +26,7 @@ limitations under the License.
 		}
 		return chars;
 	}
-	
+
 	function getJsStringCode(string){
 		if (!string) {
 			return "\"\"";
@@ -34,7 +34,7 @@ limitations under the License.
 		var chars = getChars(string);
 		return "String.fromCharCode(" + chars.join(", ") + ")";
 	}
-	
+
 	function getRegexCode(string){
 		var regexCode = [], hex;
 		var chars = getChars(string);
@@ -44,20 +44,20 @@ limitations under the License.
 			switch (hex.length) {
 				case 1:
 					hex = "0" + hex;
-					//fallthrough
+					/* falls through */
 				case 2:
 					hex = "0" + hex;
-					//fallthrough
+					/* falls through */
 				case 3:
 					hex = "0" + hex;
-					//fallthrough
+					/* falls through */
 			}
 			hex = "\\u" + hex;
 			regexCode.push(hex);
 		}
 		return regexCode.join("");
 	}
-	
+
 	function getHeaderRow(resultset, parameters){
 		var fieldsep = parameters.fieldsep;
 		var rowsep = parameters.rowsep;
@@ -85,10 +85,10 @@ limitations under the License.
 		header = header.join(fieldsep);
 		return header;
 	}
-	
+
 	function createRowWriter(resultset, parameters){
 		var rowWriter = [];
-				
+
 		rowWriter.push("var val, csv = [];");
 
 		var rowsep = parameters.rowsep;
@@ -113,15 +113,15 @@ limitations under the License.
 				reEnc += getRegexCode(fieldsep);
 			}
 			reEnc = "/" + reEnc + "/";
-			rowWriter.push("var enclosedby = " + getJsStringCode(parameters.enclosedby) + ";");			
+			rowWriter.push("var enclosedby = " + getJsStringCode(parameters.enclosedby) + ";");
 			rowWriter.push("var reEnc = " + reEnc + ";");
-			
+
 			var escapedby = parameters.escapedby || enclosedby;
 			rowWriter.push("var escRepl = " + getJsStringCode(escapedby) + " + \"$&\";");
-			
+
 			rowWriter.push("var reEsc = /" + getRegexCode(enclosedby) + "/g;");
 		}
-		
+
 		var metadata = resultset.getColumnMetadata();
 		var i, c, n = metadata.length, columnType, columnName;
 		var isArray, isDate;
@@ -157,11 +157,11 @@ limitations under the License.
 				case 16:	//timestamp
 				case 17:	//seconddate
 					isDate = true;
-					//fallthrough
+					/* falls through */
 				case 51:	//text
 				case 75:	//ST_POINT
 					isArray = true;
-					//fallthrough
+					/* falls through */
 				case 8: 	//char
 				case 9:	 	//varchar
 				case 10:	//nchar
@@ -171,12 +171,12 @@ limitations under the License.
 				case 53:	//shorttext
 				case 54:	//alphanum
 					if (isDate) {
-						rowWriter.push("val = val.toISOString();");							
+						rowWriter.push("val = val.toISOString();");
 					}
 					else
 					if (isArray) {
 						rowWriter.push("val = String.fromCharCode.apply(null, new Uint8Array(val));");
-					}						
+					}
 
 					if (reEnc) {
 						rowWriter.push("if (reEnc.test(val)){");
@@ -192,33 +192,40 @@ limitations under the License.
 			}
 			rowWriter.push("csv.push(val);");
 		}
-		
+
 		rowWriter.push("csv = csv.join(fieldsep);");
 		rowWriter.push("return csv;");
 
 		rowWriter = rowWriter.join("\n");
 		//throw new Error(rowWriter);
+
+
+    /* Turn off JSHint warnings for this statement as it is intended
+       to be a form of eval in order to deal with generated code. */
+    /* jshint ignore:start */
 		rowWriter = new Function("rowIndex", "rowData", rowWriter);
+    /* jshint ignore:end */
+
 		return rowWriter;
 	}
-		
+
 	function writeResultsetAsCsv(resultset, parameters) {
 		var body = [];
 		var rowWriter = createRowWriter(resultset, parameters);
-		
+
 		//write header row
 		if (parameters.header !== "false"){
 			body.push(getHeaderRow(resultset, parameters));
 		}
-		
+
 		//write data rows
 		resultset.iterate(function(rownum, row){
 			body.push(rowWriter.call(null, rownum, row));
 		});
-		
+
 		body = body.join(parameters.rowsep);
 		return body;
 	}
-	
+
 	exports.writeResultsetAsCsv = writeResultsetAsCsv;
 }(this));

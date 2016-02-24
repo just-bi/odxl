@@ -19,11 +19,11 @@
       </viewAttributes>
       <calculatedViewAttributes/>
       <localVariable>#p_schema_name</localVariable>
-      <definition> 
- /********* Begin Procedure Script ************/ 
- BEGIN 
- 	 var_out = SELECT   TABLE_NAME 
- 	           FROM     SYS.TABLES 
+      <definition>
+ /********* Begin Procedure Script ************/
+ BEGIN
+ 	 var_out = SELECT   TABLE_NAME
+ 	           FROM     SYS.TABLES
  	           WHERE    SCHEMA_NAME = :p_schema_name
  	           ORDER BY TABLE_NAME;
 
