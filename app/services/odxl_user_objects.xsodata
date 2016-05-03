@@ -23,4 +23,10 @@ service  {
     update forbidden
     delete forbidden;
 
+    "system-local.public.rbouman.odxl.app.models::CA_VARIABLES_001" as "VARIABLES"
+    keys generate local "ID"
+    parameters via entity "variables"
+    create forbidden
+    update forbidden
+    delete forbidden;
 }
