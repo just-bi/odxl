@@ -285,7 +285,7 @@ function setODataUrl(text){
 }
 
 function quoteIdentifierIfNecessary(identifier){
-	if (!/[A-Z_][\w]*/g.test(identifier)){
+	if (!/^[A-Z_][A-Z_\d]+$/g.test(identifier)){
 		identifier = "\"" + identifier + "\"";
 	}
 	return identifier;
