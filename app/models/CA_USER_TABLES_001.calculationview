@@ -15,26 +15,88 @@
   <calculationViews>
     <calculationView xsi:type="Calculation:SqlScriptView" id="Script_View">
       <viewAttributes>
-        <viewAttribute datatype="VARCHAR" id="TABLE_NAME" length="128"/>
+        <viewAttribute datatype="VARCHAR" id="OBJECT_NAME" length="128"/>
       </viewAttributes>
       <calculatedViewAttributes/>
       <localVariable>#p_schema_name</localVariable>
       <definition>
  /********* Begin Procedure Script ************/
  BEGIN
- 	 var_out = SELECT   TABLE_NAME
- 	           FROM     SYS.TABLES
- 	           WHERE    SCHEMA_NAME = :p_schema_name
- 	           ORDER BY TABLE_NAME;
-
+ 	 var_out =  with 
+ 	              my_accessible_views as (
+	                select view_name as object_name
+	                from   accessible_views
+	                where  user_name = session_user
+	                and schema_name = :p_schema_name
+                    and (schema_name != '_SYS_BIC'
+                      or schema_name  = '_SYS_BIC'
+                      and view_name not like '%/%/hier/%'
+                      and view_name not like '%/%/tabletype/%'
+                    ) 
+                  ),
+                  my_tables_and_views as ( 
+	                select distinct object_name
+	                from effective_privileges
+	                where user_name = session_user
+	                and schema_name = :p_schema_name
+	                and privilege in ('SELECT') 
+	                and is_valid = 'TRUE'
+	                and object_type in ('TABLE', 'VIEW')
+                  ),
+                  my_own_objects as (
+                    select distinct object_name
+                    from ownership
+                    where owner_name = session_user
+                    and schema_name = :p_schema_name
+                    and object_type in ('TABLE', 'VIEW')
+                  ),
+                  my_schema_objects as (
+	                select distinct o.objecT_name
+	                from objects o
+	                where o.schema_name in (
+	                  select     p.schema_name
+	                  from       effective_privileges p
+                      where      p.schema_name = :p_schema_name
+                      and        p.user_name = session_user
+                      and        p.privilege = 'SELECT'
+                      and        p.is_valid = 'TRUE'
+                      and        p.object_type = 'SCHEMA'
+	                )
+	                and o.object_type in ('TABLE', 'VIEW')                
+                    and (o.schema_name != '_SYS_BIC'
+                      or o.schema_name  = '_SYS_BIC'
+                      and o.object_name not like '%/%/hier/%'
+                      and o.object_name not like '%/%/tabletype/%'
+                    ) 
+                  )
+                select object_name
+                from   my_accessible_views                
+                --
+                union 
+                --
+                select object_name
+                from   my_tables_and_views
+                --
+                union 
+                --
+                select object_name
+                from   my_own_objects
+                --
+                union 
+                --
+                select object_name
+                from   my_schema_objects
+                --
+                order by 1
+                ;
 END /********* End Procedure Script ************/</definition>
     </calculationView>
   </calculationViews>
   <logicalModel id="Script_View">
     <attributes>
-      <attribute id="TABLE_NAME" order="1">
-        <descriptions defaultDescription="TABLE_NAME"/>
-        <keyMapping columnObjectName="Script_View" columnName="TABLE_NAME"/>
+      <attribute id="OBJECT_NAME" order="1">
+        <descriptions defaultDescription="OBJECT_NAME"/>
+        <keyMapping columnObjectName="Script_View" columnName="OBJECT_NAME"/>
       </attribute>
     </attributes>
     <calculatedAttributes/>
