@@ -36,22 +36,36 @@ var servicePath = path.concat(["service"]).join("/");
 //actual odxl service endpoint. This is the actual ODXL service.
 var odxlServiceEndpoint = location.protocol + "//" + location.host + servicePath + "/odxl.xsjs";
 
+function clear(){
+	setODataUrl("");
+	clearColumnSelection();
+	clearVariables();
+}
+
 var schemaSelector = document.getElementById("selectSchemas");
 function schemaSelectionChanged(){
 	clearSelector(tableSelector);
-	clearColumnSelection();
+	clear();
 	getTableData();
 }
 schemaSelector.onchange = schemaSelectionChanged;
 
 var tableSelector = document.getElementById("selectTables");
 function tableSelectionChanged(){
-	clearColumnSelection();
+	clear();
 	getColumnData();
+	getVariables();
 }
 tableSelector.onchange = tableSelectionChanged;
 
+function displayTableSelector(display) {
+	var tr = tableSelector.parentNode.parentNode;
+	tr.style.display = Boolean(display) ? "" : "none";
+}
+displayTableSelector(false);
+
 var columnsTable = document.getElementById("columnsTable");
+var variablesTable = document.getElementById("variablesTable");
 var odataUrl = document.getElementById("odataUrl");
 odataUrl.onchange = updateDownloadLinks;
 
@@ -75,6 +89,12 @@ function updateDownloadWorkbookButtonState(){
 	downloadWorkbookButton.disabled = (workbookSheets.rows.length === 0);
 }
 
+function displayTableControls(display){
+	var tableControls = document.getElementById("tableControls");
+	tableControls.style.display = Boolean(display) ? "" : "none";
+}
+displayTableControls(false);
+
 function getOData(query, callback, scope){
 	var url = appODataServiceEndpoint + query;
 	var xhr = new XMLHttpRequest();
@@ -93,17 +113,84 @@ function getSchemaData(){
 }
 
 function getTableData(){
+	displayTableSelector(false);
 	var predicate = "";
 	var schemaName = getCurrentSchemaName();
 	if (!schemaName) {
 		return;
 	}
 	predicate = "p_schema_name='" + schemaName + "'";
-	var query = "tables(" + predicate + ")/Results?$orderby=TABLE_NAME";
+	var query = "tables(" + predicate + ")/Results?$orderby=OBJECT_NAME";
 	getOData(query, populateTableSelector);
 }
 
-function getColumnData(tableName){
+function getVariables(){
+	var schemaName = getCurrentSchemaName();
+	if (!schemaName || schemaName !== "_SYS_BIC") {
+		return;
+	}
+	tableName = getCurrentTableName();
+	if (!tableName) {
+		return;
+	}
+	var predicate = "p_table_name='" + tableName + "'";
+	var query = "variables(" + predicate + ")/Results?$orderby=ORDER";
+	getOData(query, populateVariables);
+}
+
+function populateVariables(data){
+	var i, n = data.length, item;
+	if (n === 0) {
+		return;
+	}
+	var rows = variablesTable.rows;
+	var row, cells;
+
+	row = variablesTable.insertRow(rows.length);
+	row.className = "header";
+	cells = row.cells;
+
+	cell = row.insertCell(cells.length);
+	cell.innerHTML = "Variable";
+
+	cell = row.insertCell(cells.length);
+	cell.innerHTML = "Data Type";
+
+	cell = row.insertCell(cells.length);
+	cell.innerHTML = "Input Type";
+
+	cell = row.insertCell(cells.length);
+	cell.innerHTML = "Value";
+	
+	for (i = 0; i < n; i++) {
+		item = data[i];
+		row = variablesTable.insertRow(rows.length);
+		
+		row.title = item.DESCRIPTION;
+		cells = row.cells;
+
+		cell = row.insertCell(cells.length);
+		cell.innerHTML = item.VARIABLE_NAME;
+		row.setAttribute("data-VARIABLE_NAME", item.VARIABLE_NAME);
+		
+		cell = row.insertCell(cells.length);
+		cell.innerHTML = item.DATA_TYPE_NAME;		
+		row.setAttribute("data-DATA_TYPE_NAME", item.DATA_TYPE_NAME);
+
+		cell = row.insertCell(cells.length);
+		cell.innerHTML = item.SELECTION_TYPE;
+		row.setAttribute("data-SELECTION_TYPE", item.SELECTION_TYPE);
+
+		createInput(row, item);
+	}
+	
+}
+
+function clearVariables(){
+	clearTableRows(variablesTable);
+}
+
+function getColumnData(){
 	var predicate = "";
 	var schemaName = getCurrentSchemaName();
 	if (!schemaName) {
@@ -146,7 +233,8 @@ function populateSchemaSelector(data){
 }
 
 function populateTableSelector(data){
-	populateSelectorWithData(tableSelector, data, "TABLE_NAME");
+	populateSelectorWithData(tableSelector, data, "OBJECT_NAME");
+	displayTableSelector(true);
 }
 
 function getSelectedValue(selector){
@@ -192,7 +280,15 @@ function clearWorkbooksheets(){
 
 function setODataUrl(text){
 	odataUrl.value = text;
+	displayTableControls(text && text.length);
 	updateDownloadLinks();
+}
+
+function quoteIdentifierIfNecessary(identifier){
+	if (!/[A-Z_][\w]*/g.test(identifier)){
+		identifier = "\"" + identifier + "\"";
+	}
+	return identifier;
 }
 
 function buildODataQuery(){
@@ -208,15 +304,50 @@ function buildODataQuery(){
 	}
 	var odataQuery = "\"" + schemaName + "\"\/\"" + tableName + "\"";
 	var options = {};
-	var rows = columnsTable.rows, row, c, i, n = rows.length;
+	var rows, row, c, i, n;
 	var j, m, cells, cell;
-	var selector, selectedIndex;
+
+	rows = variablesTable.rows;
+	n = rows.length;
+	var variableName, dataTypeName, variables = [], input, value; 
+	for (i = 1; i < n; i ++) {
+		row = rows[i];
+		variableName = row.getAttribute("data-VARIABLE_NAME");
+		dataTypeName = row.getAttribute("data-DATA_TYPE_NAME");
+		input = row.cells[3].firstChild;
+		value = input.value;
+		if (value === "") {
+			value = "null";
+		}
+		else {
+			switch (dataTypeName) {			
+				case "CHAR":
+				case "VARCHAR":
+				case "NCHAR":
+				case "NVARCHAR":
+				case "TEXT":
+					value = "'" + value.replace(/'/g, "''") + "'";
+					break;
+				default:
+					break;
+			}
+		}
+		variables.push(variableName + "=" + value);
+	}
+	if (variables.length) {
+		odataQuery += "(" + variables.join(",") + ")"		
+	}
+	
+	var selector, selectedIndex;	
 	var columnName, columnNames = [];
 	var select = [];
 	var ordinal = {};
 	var orderby = {};
 	var ascdesc = {};
 	var filter = {}, condition, conditionValue, conditionValueInput;
+
+	rows = columnsTable.rows;
+	n = rows.length
 	for (i = 1, c = 0; i < n; i++, c++) {
 		row = rows[i];
 		columnName = row.getAttribute("data-COLUMN_NAME");
@@ -317,9 +448,9 @@ function buildODataQuery(){
 			return 0;
 		});
 		for (i = 0; i < n; i++){
-			select[i] = columnNames[select[i]];
+			select[i] = quoteIdentifierIfNecessary(columnNames[select[i]]);
 		}
-		options.$select = select.join(",");
+		options.$select = select.join(", ");
 	}
 
 	var $filter = "", op, value;
@@ -342,7 +473,10 @@ function buildODataQuery(){
 		else {
 			value = condition.value;
 		}
-		$filter += "\"" + columnName + "\" " + op + " " + value;
+		$filter += [
+		  quoteIdentifierIfNecessary(columnName),
+		  op, value
+		].join(" ");
 	}
 	if ($filter) {
 		options.$filter = $filter;
@@ -351,7 +485,7 @@ function buildODataQuery(){
 	var k, v, orderbylist = [];
 	for (k in orderby) {
 		orderbylist.push({
-			column: columnNames[k],
+			column: quoteIdentifierIfNecessary(columnNames[k]),
 			ascdesc: ascdesc[k],
 			sort1: orderby[k],
 			sort2: ordinal[k],
@@ -385,13 +519,13 @@ function buildODataQuery(){
 	var $orderby = [], item;
   n = orderbylist.length;
 	for (i = 0; i < n; i++) {
-		item = orderbylist[i].column;
+		item = quoteIdentifierIfNecessary(orderbylist[i].column);
 		if (orderbylist[i].ascdesc) {
 			item += " " + orderbylist[i].ascdesc;
 		}
 		$orderby.push(item);
 	}
-	$orderby = $orderby.join(",");
+	$orderby = $orderby.join(", ");
 	if ($orderby) {
 		options.$orderby = $orderby;
 	}
@@ -492,6 +626,62 @@ function createAscDescSelector(){
 	return createOptionsSelector(operators);
 }
 
+function createInput(row, item){
+	var cells = row.cells, cell;
+	cell = row.insertCell(cells.length);
+	cell.className = "value";
+	var input = document.createElement("INPUT");
+	var inputType = step = min = max = undefined;
+	switch (item.DATA_TYPE_NAME) {
+		//https://help.sap.com/saphelp_hanaplatform/helpdata/en/20/a1569875191014b507cf392724b7eb/content.htm#loio20a1569875191014b507cf392724b7eb___csql_data_types_1sql_data_types_introduction_datetime
+		case "DATE":
+			inputType = "date";
+			break;
+		case "TIME":
+			inputType = "time";
+			break;
+		case "SECONDDATE":
+		case "TIMESTAMP":
+			inputType = "datetime-local";
+			break;
+		//https://help.sap.com/saphelp_hanaplatform/helpdata/en/20/a1569875191014b507cf392724b7eb/content.htm#loio20a1569875191014b507cf392724b7eb___csql_data_types_1sql_data_types_introduction_numeric
+		case "TINYINT":
+			inputType = "number"; step = 1; min = 0; max = 255;
+			break;
+		case "SMALLINT":
+			inputType = "number"; step = 1; min = -32768; max = 32768;
+			break;
+		case "INTEGER":
+			inputType = "number"; step = 1; min = -2147483648; max = 2147483647;
+			break;
+		case "BIGINT":
+			inputType = "number"; step = 1; min = -9223372036854775808; max = 9223372036854775807;
+			break;
+		case "SMALLDECIMAL":
+		case "DECIMAL":
+		case "REAL":
+		case "DOUBLE":
+		case "FLOAT":
+			inputType = "number";
+			break;
+		default:
+			inputType = "text";
+	}
+
+	input.type = inputType;
+	if (step !== undefined) {
+		input.step = step;
+	}
+	if (min !== undefined) {
+		input.min = min;
+	}
+	if (max !== undefined) {
+		input.max = max;
+	}
+	input.onchange = buildODataQuery;
+	cell.appendChild(input);	
+}
+
 function populateColumns(data){
 	var i, n = data.length, item, prop;
 	var rows = columnsTable.rows, row, cells, cell;
@@ -538,7 +728,7 @@ function populateColumns(data){
 		checkbox = document.createElement("INPUT");
 		checkbox.checked = true;
 		checkbox.type = "checkbox";
-		checkbox.click = buildODataQuery;
+		checkbox.onchange = checkbox.click = buildODataQuery;
 		cell.appendChild(checkbox);
 
 		cell = row.insertCell(cells.length);
@@ -566,60 +756,7 @@ function populateColumns(data){
 		cell.className = "operator";
 		cell.appendChild(createOperatorSelector());
 
-		cell = row.insertCell(cells.length);
-		cell.className = "value";
-		input = document.createElement("INPUT");
-		checkbox.onchange = buildODataQuery;
-		inputType = step = min = max = undefined;
-		switch (item.DATA_TYPE_NAME) {
-			//https://help.sap.com/saphelp_hanaplatform/helpdata/en/20/a1569875191014b507cf392724b7eb/content.htm#loio20a1569875191014b507cf392724b7eb___csql_data_types_1sql_data_types_introduction_datetime
-			case "DATE":
-				inputType = "date";
-				break;
-			case "TIME":
-				inputType = "time";
-				break;
-			case "SECONDDATE":
-			case "TIMESTAMP":
-				inputType = "datetime-local";
-				break;
-			//https://help.sap.com/saphelp_hanaplatform/helpdata/en/20/a1569875191014b507cf392724b7eb/content.htm#loio20a1569875191014b507cf392724b7eb___csql_data_types_1sql_data_types_introduction_numeric
-			case "TINYINT":
-				inputType = "number"; step = 1; min = 0; max = 255;
-				break;
-			case "SMALLINT":
-				inputType = "number"; step = 1; min = -32768; max = 32768;
-				break;
-			case "INTEGER":
-				inputType = "number"; step = 1; min = -2147483648; max = 2147483647;
-				break;
-			case "BIGINT":
-				inputType = "number"; step = 1; min = -9223372036854775808; max = 9223372036854775807;
-				break;
-			case "SMALLDECIMAL":
-			case "DECIMAL":
-			case "REAL":
-			case "DOUBLE":
-			case "FLOAT":
-				inputType = "number";
-				break;
-			default:
-				inputType = "text";
-		}
-
-		input.type = inputType;
-		if (step !== undefined) {
-			input.step = step;
-		}
-		if (min !== undefined) {
-			input.min = min;
-		}
-		if (max !== undefined) {
-			input.max = max;
-		}
-		input.onchange = buildODataQuery;
-
-		cell.appendChild(input);
+		createInput(row, item);
 	}
 	updateTableControlsVisibility();
 	buildODataQuery();
