@@ -33,12 +33,23 @@
       <definition>
  /********* Begin Procedure Script ************/
  BEGIN
- 	 var_out = SELECT COLUMN_NAME, POSITION
- 	 , DATA_TYPE_NAME, DATA_TYPE_ID
+ 	 var_out = SELECT COLUMN_NAME
+ 	 , POSITION
+ 	 , DATA_TYPE_NAME
+ 	 , DATA_TYPE_ID
  	 FROM SYS.TABLE_COLUMNS
  	 WHERE SCHEMA_NAME = :p_schema_name
  	 AND   TABLE_NAME = :p_table_name
- 	 ORDER BY POSITION;
+ 	 union all
+ 	 select COLUMN_NAME
+ 	 , &quot;ORDER&quot;
+ 	 , substr_before(column_sql_type||'(', '(')
+ 	 , 0
+ 	 from &quot;_SYS_BI&quot;.&quot;BIMC_DIMENSION_VIEW&quot; 
+ 	 WHERE schema_name = :p_schema_name
+ 	 and  catalog_name = substr_before(:p_table_name, '/')
+ 	 and  cube_name = substr_after(:p_table_name, '/')
+ 	 ORDER BY 2;
 
 END /********* End Procedure Script ************/</definition>
     </calculationView>
