@@ -678,7 +678,22 @@ function createInput(row, item){
 	if (max !== undefined) {
 		input.max = max;
 	}
-	input.onchange = buildODataQuery;
+	input.onchange = function(){
+		var operatorCell = row.cells[input.parentNode.cellIndex - 1];
+		var operatorSelector = operatorCell.firstChild;
+		if (input.value) {
+			//if a value is entered, but there is currently no selected operator,
+			//automatically set the operator to "=";
+			if (!operatorSelector.selectedIndex) {
+				operatorSelector.selectedIndex = 3;
+			}
+		}
+		else {
+			//if there is no value, blank out the operator.
+			operatorSelector.selectedIndex = 0;
+		}
+		buildODataQuery();
+	}
 	cell.appendChild(input);	
 }
 
