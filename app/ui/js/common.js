@@ -517,7 +517,7 @@ function buildODataQuery(){
 		return 0;
 	});
 	var $orderby = [], item;
-  n = orderbylist.length;
+    n = orderbylist.length;
 	for (i = 0; i < n; i++) {
 		item = quoteIdentifierIfNecessary(orderbylist[i].column);
 		if (orderbylist[i].ascdesc) {
