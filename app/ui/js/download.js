@@ -73,8 +73,14 @@ topInput.onchange = buildODataQuery;
 var skipInput = document.getElementById("skip");
 skipInput.onchange = buildODataQuery;
 
+var fileNameInput = document.getElementById("fileName");
+fileNameInput.onchange = buildODataQuery;
+
 function updateDownloadWorkbookButtonState(){
-	downloadWorkbookButton.disabled = (workbookSheets.rows.length === 0);
+	var hasSheets = workbookSheets.tBodies[0].rows.length !== 0;
+	var display = hasSheets ? "" : "none";
+	downloadWorkbookButton.style.display = display;
+	workbookSheets.tHead.style.display = display;
 }
 
 function displayTableControls(display){
@@ -104,7 +110,7 @@ function getVariables(){
 	if (!schemaName || schemaName !== "_SYS_BIC") {
 		return;
 	}
-	tableName = getCurrentTableName();
+	var tableName = getCurrentTableName();
 	if (!tableName) {
 		return;
 	}
@@ -119,7 +125,7 @@ function populateVariables(data){
 		return;
 	}
 	var rows = variablesTable.rows;
-	var row, cells;
+	var row, cell, cells;
 
 	row = variablesTable.insertRow(rows.length);
 	row.className = "header";
@@ -173,7 +179,7 @@ function getColumnData(){
 	}
 	predicate = "p_schema_name='" + schemaName + "'";
 
-	tableName = getCurrentTableName();
+	var tableName = getCurrentTableName();
 	if (!tableName) {
 		return;
 	}
@@ -483,19 +489,27 @@ function buildODataQuery(){
 	setODataUrl(odataQuery);
 }
 
+function getFileName(extension, name){
+	var fileName;
+	fileName = name || fileNameInput.value;
+	fileName = fileName || getCurrentTableName();
+	return fileName + "." + extension;
+}
+
 function updateDownloadLinks(){
 	var odataQuery = odataUrl.value;
 	var url = odxlServiceEndpoint + "/" + odataQuery;
-	var fileName = getCurrentTableName() + ".";
-	var extension;
+	var extension, fileName;
 
 	extension = "csv";
-	downloadCsvLink.href = url + "&$format=" + extension + "&download=" + fileName + extension;
-	downloadCsvLink.download = fileName + extension;
+	fileName = getFileName(extension);
+	downloadCsvLink.href = url + "&$format=" + extension + "&download=" + fileName;
+	downloadCsvLink.download = fileName;
 
 	extension = "xlsx";
-	downloadSheetLink.href = url + "&$format=" + extension + "&download=" + fileName + extension;
-	downloadSheetLink.download = fileName + extension;
+	fileName = getFileName(extension);
+	downloadSheetLink.href = url + "&$format=" + extension + "&download=" + fileName;
+	downloadSheetLink.download = fileName;
 }
 
 function createOrdinalSelector(n){
@@ -543,7 +557,8 @@ function createInput(row, item){
 	cell = row.insertCell(cells.length);
 	cell.className = "value";
 	var input = document.createElement("INPUT");
-	var inputType = step = min = max = undefined;
+	var inputType, step, min, max;
+	inputType = step = min = max = undefined;
 	switch (item.DATA_TYPE_NAME) {
 		//https://help.sap.com/saphelp_hanaplatform/helpdata/en/20/a1569875191014b507cf392724b7eb/content.htm#loio20a1569875191014b507cf392724b7eb___csql_data_types_1sql_data_types_introduction_datetime
 		case "DATE":
@@ -689,21 +704,9 @@ function populateColumns(data){
 	buildODataQuery();
 }
 
-function removeFromWorkbook() {
-	var checkbox = this;
-	if (checkbox.checked) {
-		return true;
-	}
-	var cell = checkbox.parentNode;
-	var row = cell.parentNode;
-	var table = row.parentNode.parentNode;
-	table.deleteRow(row.rowIndex);
-	updateDownloadWorkbookButtonState();
-}
-
 function addToWorkbook(){
-	var rows = workbookSheets.rows;
-	var row = workbookSheets.insertRow(rows.length);
+	var rows = workbookSheets.tBodies[0].rows;
+	var row = workbookSheets.tBodies[0].insertRow(rows.length);
 	var cells = row.cells;
 	var cell;
 
@@ -711,7 +714,20 @@ function addToWorkbook(){
 	var checkbox = document.createElement("INPUT");
 	checkbox.type = "checkbox";
 	checkbox.checked = true;
-	checkbox.onclick = removeFromWorkbook;
+	checkbox.onclick = function removeFromWorkbook(){
+		var checkbox = this;
+		if (checkbox.checked) {
+			return true;
+		}
+		var cell = checkbox.parentNode;
+		var row = cell.parentNode;
+		var table = row.parentNode.parentNode;
+		table.deleteRow(row.rowIndex);
+		if (table.tBodies[0].rows.length === 0) {
+			updateDownloadWorkbookButtonState();
+		}
+		updateDownloadWorkbookButtonState();
+	};
 	cell.appendChild(checkbox);
 
 	cell = row.insertCell(cells.length);
@@ -742,7 +758,7 @@ function downloadWorkbook(){
   	  var a = document.createElement("a");
   	  a.style = "display: none";
   	  a.href = url;
-  	  a.download = "workbook.xlsx";
+  	  a.download = getFileName("xlsx", fileNameInput.value || "ODXL Workbook");
   	  document.body.appendChild(a);
   	  a.click();
   	  window.URL.revokeObjectURL(url);
@@ -753,7 +769,7 @@ function downloadWorkbook(){
     var boundary = "boundary123";
     xhr.setRequestHeader("Content-Type", "multipart/mixed; boundary=" + boundary);
 
-	var rows = workbookSheets.rows, n = rows.length, i, row, cells;
+	var rows = workbookSheets.tBodies[0].rows, n = rows.length, i, row, cells;
 	var body = [];
     for (i = 0; i < n; i++) {
     	row = rows[i];

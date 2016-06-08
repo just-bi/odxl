@@ -107,11 +107,15 @@ limitations under the License.
             <table>
                 <tr>
                     <th>Top:</th>
-                    <td><input id="top" type="number" step="100" value="100"/></td>
+                    <td>
+                        <input id="top" type="number" step="100" value="100" size="5"/>
+                    </td>
                 </tr>
                 <tr>
                     <th>Skip:</th>
-                    <td><input id="skip" type="number" step="100" value="0"/></td>
+                    <td>
+                        <input id="skip" type="number" step="100" value="0" size="5"/>
+                    </td>
                 </tr>
 	            <tr>
 					<th>OData URL:</th>
@@ -119,6 +123,12 @@ limitations under the License.
 					   <textarea cols="80" rows="5" id="odataUrl">
 					   </textarea>
 					</td>
+				</tr>
+				<tr>
+				    <th>Filename:</th>
+				    <td>
+				        <input id="fileName"/>
+				    </td>
 				</tr>
 	        </table>
 
@@ -128,6 +138,7 @@ limitations under the License.
                         <th style="white-space: nowrap">
                             Download single dataset:
                         </th>
+                        <td>Or:</td>
                         <th style="white-space: nowrap" colspan="2">
                             Create a .xlsx workbook:
                         </th>
@@ -135,27 +146,41 @@ limitations under the License.
                         </th>                        
                     </tr>
                 </thead>
-                <tr>
-                    <td style="white-space: nowrap" valign="top">
-                        as <a id="downloadCsvLink" target="_blank" download="odxl.csv">.csv File</a>
-                    </td>
-                    <td valign="top">
-                        <button id="addToWorkbookButton">Add to workbook</button>
-                    </td>
-                    <td>
-                        <button id="downloadWorkbookButton">Download .xlsx Workbook</button>
-                    </td>
-                    <td style="wdith:100%"></td>
-                </tr>
-                <tr>
-                    <td style="white-space: nowrap">
-                        as <a id="downloadSheetLink" target="_blank" download="odxl.xlsx">.xlsx Sheet</a>
-                    </td>
-                    <td colspan="3">
-                        <table id="workbookSheets">
-                        </table>
-                    </td>
-                </tr>
+                <tbody>
+	                <tr>
+	                    <td style="white-space: nowrap" valign="top">
+	                        as <a id="downloadCsvLink" target="_blank" download="odxl.csv">.csv File</a>
+	                    </td>
+	                    <td rowspan="2">
+	                       <br/>
+	                    </td>
+	                    <td valign="top" align="left" colspan="2" nowrap="true">
+	                        <button id="addToWorkbookButton">Add to workbook</button>
+                            <button id="downloadWorkbookButton" style="display: none">Download .xlsx Workbook</button>
+	                    </td>
+	                    <td style="width:100%"></td>
+	                </tr>
+	                <tr>
+	                    <td style="white-space: nowrap">
+	                        as <a id="downloadSheetLink" target="_blank" download="odxl.xlsx">.xlsx Sheet</a>
+	                    </td>
+	                    <td colspan="3">
+	                        <table id="workbookSheets">
+	                           <thead style="display:none">
+	                               <tr class="header">
+		                               <td>Remove</td>
+	                                   <td>Sheetname</td>
+	                                   <td>URL</td>
+	                               </tr>
+	                           </thead>
+	                           <tbody>
+	                           </tbody>
+	                        </table>
+	                    </td>
+	                </tr>
+	                <tr>
+	                </tr>
+                </tbody>
             </table>
 
         </div>
