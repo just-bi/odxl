@@ -26,10 +26,10 @@ The steps are a little bit different, depending on whether you just want to use 
 
 Here are the steps if you just want to use ODXL, and currently have no need to actively develop the project:
 
-1) In HANA Studio/Eclipse, create a new HANA xs project. Alternatively, find an existing HANA xs project.
-2) Find the ODXL repository on github, and download the project as a zipped folder. (Select a particular branch if you desire so; typically you'll want to get the master branch)
-3) Extract the project from the zip. This will yield a folder. Copy its contents, and place them into your xs project directory (or one of its sub directories)
-4) Activate the new content.
+1. In HANA Studio/Eclipse, create a new HANA xs project. Alternatively, find an existing HANA xs project.
+2. Find the ODXL repository on github, and download the project as a zipped folder. (Select a particular branch if you desire so; typically you'll want to get the master branch)
+3. Extract the project from the zip. This will yield a folder. Copy its contents, and place them into your xs project directory (or one of its sub directories)
+4. Activate the new content.
 
 After taking these steps, you should now have a working ODXL service, as well as a sample application.
 The service itself is in the service subdirectory, and you'll find the sample application inside the app subdirectory.
