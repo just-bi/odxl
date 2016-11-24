@@ -57,7 +57,7 @@ limitations under the License.
 		var str = "";
 		switch (node.type) {
 			case "lparen":
-				str = "(" + translateFilterParseTreeToSql(node.operand) + ")";
+				str += "(" + translateFilterParseTreeToSql(node.operand) + ")";
 				break;
 			case "multiplicative":
 			case "additive":
@@ -88,6 +88,27 @@ limitations under the License.
 						str += " IS NULL";
 					}
 				}
+				else 
+				if (node.type === "equality" && (left.type === "boolliteral" || right.type === "boolliteral")) {
+				  if (left.type === "boolliteral" && right.type === "boolliteral") {
+				    str += "'" + left.text + "' = '" + right.text + "'";
+				  }
+				  else {
+				    var bool, exp;
+				    if (left.type === "boolliteral") {
+				      exp = translateFilterParseTreeToSql(right);
+				      bool = left.text;
+				    }
+				    else {
+              exp = translateFilterParseTreeToSql(left);
+              bool = right.text;
+				    }
+				    if (node.text === "ne") {
+				      exp = "NOT(" + exp + ")";
+				    }
+				    str += exp;
+				  }
+				}
 				else {
 					var ops = {
 					  "add": "+",
@@ -106,33 +127,33 @@ limitations under the License.
 					left = translateFilterParseTreeToSql(left);
 					right = translateFilterParseTreeToSql(right);
 					if (node.text === "mod") {
-						str = "MOD(" + left + ", " + right + ")";
+						str += "MOD(" + left + ", " + right + ")";
 					}
 					else { 
 						var op = ops[node.text];
-						str = left + " " + op + " " + right;
+						str += left + " " + op + " " + right;
 					}
 				}
 				break;
 			case "unary":
-				str = node.text + translateFilterParseTreeToSql(node.rightOperand);
+				str += node.text + translateFilterParseTreeToSql(node.rightOperand);
 				break;
 			case "funcSubstringOf":
 				//TODO: verify that OData's subtringof() returns false if the second argument is empty
 				//(because that's what we implemented with LOCATE https://help.sap.com/saphelp_hanaone/helpdata/en/20/e3b6b77519101485e6bd62f7018f75/content.htm)
 				var needle = translateFilterParseTreeToSql(node.args[0]);
 				var haystack = translateFilterParseTreeToSql(node.args[1]);
-				str = "(IFNULL(LOCATE(" + haystack + ", " + needle + "), 0) != 0)";
+				str += "(IFNULL(LOCATE(" + haystack + ", " + needle + "), 0) != 0)";
 				break;
 			case "funcCheckWithSubstring":
 				var haystack = translateFilterParseTreeToSql(node.args[0]);
 				var needle = translateFilterParseTreeToSql(node.args[1]);
 				switch (node.funcName) {
 					case "endswith":
-						str = "RIGHT(" + haystack + ", LENGTH(" + needle + ")) = " + needle;
+						str += "RIGHT(" + haystack + ", LENGTH(" + needle + ")) = " + needle;
 						break;
 					case "startswith":
-						str = "LEFT(" + haystack + ", LENGTH(" + needle + ")) = " + needle;
+						str += "LEFT(" + haystack + ", LENGTH(" + needle + ")) = " + needle;
 						break;
 					default:
 						httpStatus = $.net.http.INTERNAL_SERVER_ERROR;
@@ -141,23 +162,23 @@ limitations under the License.
 				break;
 			case "funcLength":
 				var string = translateFilterParseTreeToSql(node.args[0]);
-				str = "LENGTH(" + string + ")";
+				str += "LENGTH(" + string + ")";
 				break;
 			case "funcIndexOf":
 				var haystack = translateFilterParseTreeToSql(node.args[0]);
 				var needle = translateFilterParseTreeToSql(node.args[1]);
-				str = "(LOCATE(" + haystack + "," + needle + ") - 1)";
+				str += "(LOCATE(" + haystack + "," + needle + ") - 1)";
 				break;
 			case "funcReplace":
 				var string = translateFilterParseTreeToSql(node.args[0]);
 				var search = translateFilterParseTreeToSql(node.args[1]);
 				var replace = translateFilterParseTreeToSql(node.args[2]);
-				str = "REPLACE(" + string + ", " + search + ", " + replace + ")";
+				str += "REPLACE(" + string + ", " + search + ", " + replace + ")";
 				break;
 			case "funcSubstring":
 				var string = translateFilterParseTreeToSql(node.args[0]);
 				var pos = translateFilterParseTreeToSql(node.args[1]);
-				str = "SUBSTRING(" + string + ", 1 + (" + pos + ")";
+				str += "SUBSTRING(" + string + ", 1 + (" + pos + ")";
 				if (node.args.length === 3) {
 					var length = translateFilterParseTreeToSql(node.args[2]);
 					str += ", " + length;
@@ -168,10 +189,10 @@ limitations under the License.
 				var string = translateFilterParseTreeToSql(node.args[0]);
 				switch (node.funcName){
 					case "tolower":
-						str = "LCASE(" + string + ")";
+						str += "LCASE(" + string + ")";
 						break;
 					case "toupper":
-						str = "UCASE(" + string + ")";
+						str += "UCASE(" + string + ")";
 						break;
 					default:
 						httpStatus = $.net.http.INTERNAL_SERVER_ERROR;
@@ -180,33 +201,33 @@ limitations under the License.
 				break;
 			case "funcTrim":
 				var string = translateFilterParseTreeToSql(node.args[0]);
-				str = "TRIM(" + string + ")";
+				str += "TRIM(" + string + ")";
 				break;
 			case "funcConcat":
 				var head = translateFilterParseTreeToSql(node.args[0]);
 				var tail = translateFilterParseTreeToSql(node.args[1]);
-				str = "CONCAT(" + head + ", " + tail + ")";
+				str += "CONCAT(" + head + ", " + tail + ")";
 				break;
 			case "funcDatetimePart":
 				var datetime = translateFilterParseTreeToSql(node.args[0]);
 				switch (node.funcName) {
 					case "day":
-						str = "DAYOFMONTH(" + datetime + ")";
+						str += "DAYOFMONTH(" + datetime + ")";
 						break;
 					case "hour":
-						str = "HOUR(" + datetime + ")";
+						str += "HOUR(" + datetime + ")";
 						break;
 					case "minute":
-						str = "MINUTE(" + datetime + ")";
+						str += "MINUTE(" + datetime + ")";
 						break;
 					case "month":
-						str = "MONTH(" + datetime + ")";
+						str += "MONTH(" + datetime + ")";
 						break;
 					case "second":
-						str = "SECOND(" + datetime + ")";
+						str += "SECOND(" + datetime + ")";
 						break;
 					case "year":
-						str = "YEAR(" + datetime + ")";
+						str += "YEAR(" + datetime + ")";
 						break;
 				}
 				break;
@@ -214,13 +235,13 @@ limitations under the License.
 				var num = translateFilterParseTreeToSql(node.args[0]);
 				switch (node.funcName) {
 					case "round":
-						str = "ROUND(" + num + ")";
+						str += "ROUND(" + num + ")";
 						break;
 					case "floor":
-						str = "FLOOR(" + num + ")";
+						str += "FLOOR(" + num + ")";
 						break;
 					case "ceiling":
-						str = "FLOOR(" + num + " + 1)";
+						str += "FLOOR(" + num + " + 1)";
 						break;
 					default:
 						httpStatus = $.net.http.INTERNAL_SERVER_ERROR;
@@ -228,11 +249,11 @@ limitations under the License.
 				}
 				break;
 			case "identifier":
-				str = sql.checkIdentifier(node.text);
+				str += sql.checkIdentifier(node.text);
 				break;
 			case "number":
 			case "string":
-				str = node.text;
+				str += node.text;
 				break;
 		}
 		return str;
