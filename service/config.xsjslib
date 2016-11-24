@@ -36,7 +36,9 @@ limitations under the License.
 		"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 		"csv":	"text/csv",
 		"ods": 	"application/vnd.oasis.opendocument.spreadsheet",
-		"zip":  "application/zip"
+		"zip":  "application/zip",
+    "json":  "application/json",
+		"sql":  "text/sql"
 	};
 
 	/**
@@ -47,6 +49,8 @@ limitations under the License.
 		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "handlers/xlsxhandler.xsjslib",
 		"text/csv": "handlers/csvhandler.xsjslib",
 		"application/vnd.oasis.opendocument.spreadsheet": "handlers/odshandler.xsjslib",
-		"application/zip": "handlers/xlsxhandler.xsjslib"
+		"application/zip": "handlers/xlsxhandler.xsjslib",
+		"text/sql": "handlers/texthandler.xsjslib",
+		"application/json": "handlers/jsonhandler.xsjslib"
 	};
 }(this));

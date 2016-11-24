@@ -73,6 +73,9 @@ limitations under the License.
 
 	function getData(req, parameters){
 		var query = querybuilder.buildQuery(req, parameters);
+		if (parameters.$format === 'sql') {
+		  return query;
+		}
 		//throw query;
 		sql.openConnection();
 		var resultset;
