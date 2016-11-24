@@ -1,0 +1,32 @@
+// To define an XS OData service, you can use the following syntax.
+// In the example below Aggregation, Modification and Association are defined.
+
+service  {
+
+    "system-local.public.rbouman.odxl.app.models::CA_USER_SCHEMA_001" as "schemas"
+    keys generate local "ID"
+    create forbidden
+    update forbidden
+    delete forbidden;
+
+    "system-local.public.rbouman.odxl.app.models::CA_USER_TABLES_001" as "TABLES"
+    keys generate local "ID"
+    parameters via entity "tables"
+    create forbidden
+    update forbidden
+    delete forbidden;
+
+    "system-local.public.rbouman.odxl.app.models::CA_USER_TABLE_COLUMNS_001" as "COLUMNS"
+    keys generate local "ID"
+    parameters via entity "columns"
+    create forbidden
+    update forbidden
+    delete forbidden;
+
+    "system-local.public.rbouman.odxl.app.models::CA_VARIABLES_001" as "VARIABLES"
+    keys generate local "ID"
+    parameters via entity "variables"
+    create forbidden
+    update forbidden
+    delete forbidden;
+}

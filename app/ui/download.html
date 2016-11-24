@@ -1,0 +1,191 @@
+<!doctype html>
+<!--
+Copyright 2016 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+    <head>
+        <title>ODXL - Sample Application</title>
+        <link rel="stylesheet" type="text/css" href="css/styles.css"/>
+    </head>
+    <body>
+	    <h3>ODXL Demo Application</h3>
+	    <p>
+	      This is a simple application to help you learn how to use <a href="https://github.com/just-bi/odxl">ODXL</a>.
+	    </p>
+        <p id="moreinfo">For more info on using this sample application, 
+            <span
+	          class="fakelink"
+	          onclick="moreInfo()"
+	        >click here</span>.
+	    </p>
+	    <div id="info" style="display: none">
+		    <ol>
+		      <li>Use the schema dropdown to select a database schema. After a little while, the table dropdown will appear</li>
+		      <li>Use the table dropdown to select a table or view object. Note that for calculation views, you need to find the corresponding runtime object in the _SYS_BIC schema.</li>
+		      <li>After selecting a table, use the columns form to make a selection of columns, and to set filter and/or sort options.</li>
+              <li>If you selected a calculation view that relies on input parameters or variables, a variables form will appear to enter values.</li>
+              <li>Optionally, tweak the value in the Top and Skip inputs to select a specific portion of the data</li>
+              <li>Optionally, manually edit the OData URL</li>
+		    </ol>
+		    <p>
+              Finally, use the links below the form to have ODXL export your data in .csv or .xlsx format.
+              These will use the OData URL and appand a $format option, specifying csv or xlsx, respectively.
+            </p>
+            <p>
+		      You can also make multiple exports in a single .xlsx worbook by using the "Add to workbook" button.
+		      By clicking that button you can specify a collection of OData URL's, each of which will end up as a distinct worksheet in your workbook.
+		    </p>
+		    <p> 
+		      When you're done adding sheets to your workbook, hit the "Download .xlsx workbook" button.
+		      Hitting that button will send the specified URLs in a batch request to the ODXL service, 
+		      enabling you to download a .xlsx workbook containing all your data sets as a worksheet.  
+		    </p>
+	        <p id="lessinfo">To hide the extra info, 
+	            <span
+	              class="fakelink"
+	              onclick="lessInfo()"
+	            >click here</span>.
+	        </p>
+        </div>
+        <script>
+          function moreInfo(){
+        	  var info = document.getElementById("info");
+        	  info.style.display = "block";
+              var moreinfo = document.getElementById("moreinfo");
+              moreinfo.style.display = "none";
+          }
+          function lessInfo(){
+              var info = document.getElementById("info");
+              info.style.display = "none";
+              var moreinfo = document.getElementById("moreinfo");
+              moreinfo.style.display = "block";
+          }
+        </script>
+        <table>
+            <tr>
+                <th>
+                    Schema:
+                </th>
+                <td>
+                    <select id="selectSchemas">
+                        <option><i>select a schema...</i></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    Table:
+                </th>
+                <td>
+                    <select id="selectTables">
+                        <option><i>select a table...</i></option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <table id="columnsTable">
+            <tbody>
+            </tbody>
+        </table>
+        <table id="variablesTable">
+            <tbody>
+            </tbody>
+        </table>
+        <div id="tableControls">
+            <table>
+                <tr>
+                    <th>Top:</th>
+                    <td>
+                        <input id="top" type="number" step="100" value="100" size="5"/>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Skip:</th>
+                    <td>
+                        <input id="skip" type="number" step="100" value="0" size="5"/>
+                    </td>
+                </tr>
+	            <tr>
+					<th>OData URL:</th>
+					<td >
+					   <textarea cols="80" rows="5" id="odataUrl">
+					   </textarea>
+					</td>
+				</tr>
+				<tr>
+				    <th>Filename:</th>
+				    <td>
+				        <input id="fileName"/>
+				    </td>
+				</tr>
+	        </table>
+
+            <table id="linksAndButtons">
+                <thead>
+                    <tr>
+                        <th style="white-space: nowrap">
+                            Download single dataset:
+                        </th>
+                        <td>Or:</td>
+                        <th style="white-space: nowrap" colspan="2">
+                            Create a .xlsx workbook:
+                        </th>
+                        <th style="wdith:100%">
+                        </th>                        
+                    </tr>
+                </thead>
+                <tbody>
+	                <tr>
+	                    <td style="white-space: nowrap" valign="top">
+	                        as <a id="downloadCsvLink" target="_blank" download="odxl.csv">.csv File</a>
+	                    </td>
+	                    <td rowspan="2">
+	                       <br/>
+	                    </td>
+	                    <td valign="top" align="left" colspan="2" nowrap="true">
+	                        <button id="addToWorkbookButton">Add to workbook</button>
+                            <button id="downloadWorkbookButton" style="display: none">Download .xlsx Workbook</button>
+	                    </td>
+	                    <td style="width:100%"></td>
+	                </tr>
+	                <tr>
+	                    <td style="white-space: nowrap">
+	                        as <a id="downloadSheetLink" target="_blank" download="odxl.xlsx">.xlsx Sheet</a>
+	                    </td>
+	                    <td colspan="3">
+	                        <table id="workbookSheets">
+	                           <thead style="display:none">
+	                               <tr class="header">
+		                               <td>Remove</td>
+	                                   <td>Sheetname</td>
+	                                   <td>URL</td>
+	                               </tr>
+	                           </thead>
+	                           <tbody>
+	                           </tbody>
+	                        </table>
+	                    </td>
+	                </tr>
+	                <tr>
+	                </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <script type="text/javascript" src="js/common.js"></script>
+        <script type="text/javascript" src="js/download.js"></script>
+    </body>
+</html>

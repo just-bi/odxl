@@ -1,0 +1,21 @@
+{
+     "exposed" : true,
+
+     "authentication" :
+            {
+               "method": "Basic"
+            },
+
+     "cache_control" : "must-revalidate",
+
+     "cors" :
+            {
+             "enabled" : false
+            },
+
+     "enable_etags" : false,
+
+     "force_ssl" : false,
+
+     "prevent_xsrf" : false
+}

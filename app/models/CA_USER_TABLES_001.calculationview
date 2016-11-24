@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" schemaVersion="2.3" id="CA_USER_TABLES_001" applyPrivilegeType="ANALYTIC_PRIVILEGE" checkAnalyticPrivileges="true" defaultClient="$$client$$" defaultLanguage="$$language$$" visibility="internal" calculationScenarioType="SCRIPT_BASED" dataCategory="DEFAULT" enforceSqlExecution="false" executionSemantic="UNDEFINED" scriptParametersCaseSensitive="true">
+  <descriptions defaultDescription="USER_TABLES"/>
+  <localVariables>
+    <variable id="p_schema_name" parameter="true">
+      <descriptions defaultDescription="p_schema_name"/>
+      <variableProperties datatype="VARCHAR" length="128" mandatory="true">
+        <valueDomain type="empty"/>
+        <selection multiLine="false" type="SingleValue"/>
+      </variableProperties>
+    </variable>
+  </localVariables>
+  <variableMappings/>
+  <dataSources/>
+  <calculationViews>
+    <calculationView xsi:type="Calculation:SqlScriptView" id="Script_View">
+      <viewAttributes>
+        <viewAttribute datatype="VARCHAR" id="OBJECT_NAME" length="128"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <localVariable>#p_schema_name</localVariable>
+      <definition>
+ /********* Begin Procedure Script ************/
+ BEGIN
+ 	 var_out =  with
+		table_objects
+		as (
+		    select  schema_name
+		    ,       table_name as object_name
+		    from    tables
+		    where   schema_name = :p_schema_name
+		    and     is_user_defined_type = 'FALSE'
+		),
+		view_objects 
+		as (
+		    select  schema_name
+		    ,       view_name as object_name
+		    from    views
+		    where   schema_name = :p_schema_name
+            and     is_valid = 'TRUE'
+		    -- valid types are 'ROW', 'JOIN', 'CALC', 'HIERARCHY' and 'OLAP'
+		    -- but OLAP views require a group by clause to query.
+		    and     view_type   not in ('OLAP')
+		),
+		owned_objects
+		as (
+		    select  object_name
+		    from    ownership
+		    where   schema_name = :p_schema_name
+            and     owner_name = session_user
+		    and     object_type in ('TABLE', 'VIEW')
+		),
+		selectable_objects
+		as (
+		    select  distinct 
+		            object_name
+		    from    effective_privileges
+		    where   schema_name = :p_schema_name
+            and     user_name   = session_user
+		    and     privilege   in ('SELECT') 
+		    and     is_valid    = 'TRUE'
+		    and     object_type in ('TABLE', 'VIEW')
+		),
+		selectable_schemas
+		as (
+		    select  schema_name
+		    from    effective_privileges
+		    where   schema_name = :p_schema_name
+            and     user_name = session_user
+		    and     privilege in ('SELECT') 
+		    and     is_valid = 'TRUE'
+		    and     object_type in ('SCHEMA')
+		),
+		table_and_view_objects
+		as (
+		    select  *
+		    from    table_objects
+		    union all
+		    select  *
+		    from    view_objects
+		),
+		selectable_and_owned_objects
+		as (
+		    select  *
+		    from    selectable_objects
+		    union   
+		    select  *
+		    from    owned_objects
+		),
+		selectable_schema_table_and_view_objects
+		as (
+		    select      o.*
+		    from        selectable_schemas      s
+		    inner join  table_and_view_objects  o
+		    on          s.schema_name = o.schema_name
+		),
+		selectable_and_owned_table_and_view_objects
+		as (
+		    select      o.*
+		    from        selectable_and_owned_objects s
+		    inner join  table_and_view_objects  o
+		    on          s.object_name = o.object_name
+		)
+		select  object_name
+		from    selectable_schema_table_and_view_objects
+		union
+		select  object_name
+		from    selectable_and_owned_table_and_view_objects
+		order by object_name
+		;
+END /********* End Procedure Script ************/</definition>
+    </calculationView>
+  </calculationViews>
+  <logicalModel id="Script_View">
+    <attributes>
+      <attribute id="OBJECT_NAME" order="1">
+        <descriptions defaultDescription="OBJECT_NAME"/>
+        <keyMapping columnObjectName="Script_View" columnName="OBJECT_NAME"/>
+      </attribute>
+    </attributes>
+    <calculatedAttributes/>
+    <privateDataFoundation>
+      <tableProxies/>
+      <joins/>
+      <layout>
+        <shapes/>
+      </layout>
+    </privateDataFoundation>
+    <baseMeasures/>
+    <calculatedMeasures/>
+    <restrictedMeasures/>
+    <localDimensions/>
+  </logicalModel>
+  <layout>
+    <shapes>
+      <shape modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+        <upperLeftCorner x="40" y="85"/>
+      </shape>
+    </shapes>
+  </layout>
+</Calculation:scenario>

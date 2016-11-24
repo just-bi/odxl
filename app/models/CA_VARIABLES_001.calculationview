@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" schemaVersion="2.3" id="CA_VARIABLES_001" applyPrivilegeType="ANALYTIC_PRIVILEGE" checkAnalyticPrivileges="true" defaultClient="$$client$$" defaultLanguage="$$language$$" visibility="internal" calculationScenarioType="SCRIPT_BASED" dataCategory="DEFAULT" enforceSqlExecution="false" executionSemantic="UNDEFINED" scriptParametersCaseSensitive="true">
+  <descriptions defaultDescription="CA_USER_SCHEMA_001"/>
+  <localVariables>
+    <variable id="p_table_name" parameter="true">
+      <descriptions defaultDescription="p_table_name"/>
+      <variableProperties datatype="NVARCHAR" length="128" mandatory="true">
+        <valueDomain type="empty"/>
+        <selection multiLine="false" type="SingleValue"/>
+      </variableProperties>
+    </variable>
+  </localVariables>
+  <variableMappings/>
+  <dataSources/>
+  <calculationViews>
+    <calculationView xsi:type="Calculation:SqlScriptView" id="Script_View">
+      <viewAttributes>
+        <viewAttribute datatype="NVARCHAR" id="CATALOG_NAME" length="512"/>
+        <viewAttribute datatype="NVARCHAR" id="CUBE_NAME" length="512"/>
+        <viewAttribute datatype="NVARCHAR" id="VARIABLE_NAME" length="512"/>
+        <viewAttribute datatype="NVARCHAR" id="DATA_TYPE_NAME" length="32"/>
+        <viewAttribute datatype="NVARCHAR" id="SELECTION_TYPE" length="32"/>
+        <viewAttribute datatype="INTEGER" id="ORDER"/>
+        <viewAttribute datatype="NVARCHAR" id="DESCRIPTION" length="1024"/>
+        <viewAttribute datatype="VARCHAR" id="DEFAULT_VALUE" length="512"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <localVariable>#p_table_name</localVariable>
+      <definition>
+ /********* Begin Procedure Script ************/
+ BEGIN
+ 	 var_out =   SELECT CATALOG_NAME
+ 	             , CUBE_NAME
+ 	             , VARIABLE_NAME
+                 , substr_before(column_sql_type||'(', '(') DATA_TYPE_NAME
+                 , selection_type
+                 , &quot;ORDER&quot;
+                 , DESCRIPTION
+                 , DEFAULT_VALUE
+ 	             FROM   &quot;_SYS_BI&quot;.&quot;BIMC_VARIABLE_VIEW&quot;
+			     WHERE  catalog_name = substr_before(:p_table_name, '/')
+			     and  cube_name = substr_after(:p_table_name, '/')
+			 	 ORDER BY  &quot;ORDER&quot;
+			 	 ;
+
+END /********* End Procedure Script ************/</definition>
+    </calculationView>
+  </calculationViews>
+  <logicalModel id="Script_View">
+    <attributes>
+      <attribute id="CATALOG_NAME" order="1">
+        <descriptions defaultDescription="CATALOG_NAME"/>
+        <keyMapping columnObjectName="Script_View" columnName="CATALOG_NAME"/>
+      </attribute>
+      <attribute id="CUBE_NAME" order="2">
+        <descriptions defaultDescription="CUBE_NAME"/>
+        <keyMapping columnObjectName="Script_View" columnName="CUBE_NAME"/>
+      </attribute>
+      <attribute id="VARIABLE_NAME" order="3">
+        <descriptions defaultDescription="VARIABLE_NAME"/>
+        <keyMapping columnObjectName="Script_View" columnName="VARIABLE_NAME"/>
+      </attribute>
+      <attribute id="DATA_TYPE_NAME" order="4">
+        <descriptions defaultDescription="DATA_TYPE_NAME"/>
+        <keyMapping columnObjectName="Script_View" columnName="DATA_TYPE_NAME"/>
+      </attribute>
+      <attribute id="SELECTION_TYPE" order="5">
+        <descriptions defaultDescription="SELECTION_TYPE"/>
+        <keyMapping columnObjectName="Script_View" columnName="SELECTION_TYPE"/>
+      </attribute>
+      <attribute id="DESCRIPTION" order="7">
+        <descriptions defaultDescription="DESCRIPTION"/>
+        <keyMapping columnObjectName="Script_View" columnName="DESCRIPTION"/>
+      </attribute>
+      <attribute id="DEFAULT_VALUE" order="8">
+        <descriptions defaultDescription="DEFAULT_VALUE"/>
+        <keyMapping columnObjectName="Script_View" columnName="DEFAULT_VALUE"/>
+      </attribute>
+    </attributes>
+    <calculatedAttributes/>
+    <privateDataFoundation>
+      <tableProxies/>
+      <joins/>
+      <layout>
+        <shapes/>
+      </layout>
+    </privateDataFoundation>
+    <baseMeasures>
+      <measure id="ORDER" order="6" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="ORDER"/>
+        <measureMapping columnObjectName="Script_View" columnName="ORDER"/>
+      </measure>
+    </baseMeasures>
+    <calculatedMeasures/>
+    <restrictedMeasures/>
+    <localDimensions/>
+  </logicalModel>
+  <layout>
+    <shapes>
+      <shape modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+        <upperLeftCorner x="40" y="85"/>
+      </shape>
+    </shapes>
+  </layout>
+</Calculation:scenario>
