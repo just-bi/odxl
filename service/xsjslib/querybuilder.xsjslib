@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(exports){
+	
+	var sql = $.import("sql.xsjslib");
 
 	function buildQuerySelectClause(req, parameters, query){
 		query.push("SELECT");
