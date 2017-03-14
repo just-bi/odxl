@@ -116,6 +116,11 @@ var ODataFilterParser;
       "pattern": /null/,
       "type": optypes.operand
     },
+    "long": {
+        "pattern": /([-]?[0-9]+)L/,
+        "type": optypes.operand,
+        "dataType": "number"
+    },
     "number": {
       "pattern": /-?(0|[1-9]\d*)(\.\d+)?([eE][\+\-]?\d+)?/,
       "type": optypes.operand,
