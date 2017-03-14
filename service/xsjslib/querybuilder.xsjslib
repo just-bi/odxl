@@ -254,7 +254,7 @@ limitations under the License.
 				str += sql.checkIdentifier(node.text);
 				break;
 			case "long":
-				return parseFloat(node.text);
+				str += parseFloat(node.text);
 				break;
 			case "number":
 			case "string":
