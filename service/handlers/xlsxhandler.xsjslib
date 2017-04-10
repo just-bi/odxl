@@ -154,6 +154,10 @@ limitations under the License.
 
 	function generateWorksheet(xlsxWorkbook, parameters, resultset) {
 		var sheetName = parameters.sheetname || "Sheet";
+                var sheetNamePattern = /^[^'\[\]/\\:?][^\[\]/\\:?]{0,30}$/;
+		if (!sheetNamePattern.test(sheetName)) {
+		  throw "Sheetname \"" + sheetName + "\" does not match pattern /" + sheetNamePattern.source + "/."; 
+		}
 		var name = sheetName, num = 0;
 		while (xlsxWorkbook.getSheetIndexByName(name) !== -1) {
 			name = sheetName + " " + (++num);
