@@ -749,36 +749,47 @@ function downloadWorkbook(){
     //http://jsfiddle.net/koldev/cw7w5/
     xhr.responseType = "blob";
     xhr.onload = function(){
-      if (this.status !== 200) {
-    	  alert("Error: " + this.statusText + "\n" + String.fromCharCode(this.response));
-    	  return;
-      }
-  	  var blob = this.response;
-  	  url = window.URL.createObjectURL(blob);
-  	  var a = document.createElement("a");
-  	  a.style = "display: none";
-  	  a.href = url;
-  	  a.download = getFileName("xlsx", fileNameInput.value || "ODXL Workbook");
-  	  document.body.appendChild(a);
-  	  a.click();
-  	  window.URL.revokeObjectURL(url);
-  	  clearWorkbooksheets();
+        var blob = this.response;
+        if (this.status !== 200) {
+          var fileReader = new FileReader();
+          fileReader.addEventListener("loadend", function(){
+            alert("Error: " + xhr.statusText + "\n" + fileReader.result);
+          });
+          fileReader.readAsText(blob);
+	  return;
+        }
+        url = window.URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.style = "display: none";
+        a.href = url;
+        a.download = getFileName("xlsx", fileNameInput.value || "ODXL Workbook");
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        clearWorkbooksheets();
     };
 
 
     var boundary = "boundary123";
     xhr.setRequestHeader("Content-Type", "multipart/mixed; boundary=" + boundary);
 
-	var rows = workbookSheets.tBodies[0].rows, n = rows.length, i, row, cells;
-	var body = [];
+    var rows = workbookSheets.tBodies[0].rows, n = rows.length, i, row, cells;
+    var body = [], sheetUri, sheetName;
+    var sheetNamePattern = /^[^'\[\]/\\:?][^\[\]/\\:?]{0,30}$/;
     for (i = 0; i < n; i++) {
     	row = rows[i];
     	cells = row.cells;
+        sheetName = cells[1].firstChild.value;
+        if (!sheetNamePattern.test(sheetName)) {
+          alert("Sheetname \"" + sheetName + "\" does not match pattern /" + sheetNamePattern.source + "/.");
+          return;
+        }
+    	sheetUri = cells[2].textContent;
     	body.push("--" + boundary);
     	body.push("Content-Type: application/http");
     	body.push("Content-Transfer-Encoding: binary");
     	body.push("");
-    	body.push("GET " + cells[2].textContent + "&sheetname=" + cells[1].firstChild.value);
+    	body.push("GET " + sheetUri + "&sheetname=" + sheetName);
     	body.push("");
     }
     body.push("--" + boundary + "--");
