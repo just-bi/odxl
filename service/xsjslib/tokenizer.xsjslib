@@ -1,5 +1,5 @@
 /*
-Copyright 2016 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
+Copyright 2016 - 2018 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -300,7 +300,7 @@ Tokenizer.prototype = {
                     exclude = {};
                     for (var i = 0, n = config.length, v; i < n; i++) {
                         v = config[i];
-                        if (typeof(v) !== "string") throw "Invalid argument.";
+                        if (typeof(v) !== "string") throw "Invalid argument."
                         exclude[v] = true;
                     }
                 }
@@ -310,7 +310,7 @@ Tokenizer.prototype = {
                 exclude = null;
                 break;
             default:
-                throw "Invalid argument.";
+                throw "Invalid argument."
         }
         this._exclude = exclude;
     }
@@ -318,4 +318,4 @@ Tokenizer.prototype = {
 
 exports.Tokenizer = Tokenizer;
 
-}(this));
+}(this))

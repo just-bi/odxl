@@ -1,5 +1,5 @@
 /*
-Copyright 2016 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
+Copyright 2016 - 2018 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(exports){
-
+	
 	var xlsx = $.import("../xsjslib/xlsx.xsjslib");
 	var params = $.import("../xsjslib/params.xsjslib");
 	params.define({
 		//specify the name of the sheet where the data appears
-		sheetname: {
+		sheetname: {			
 			type: "VARCHAR",
 			mandatory: false
 		},
@@ -54,13 +54,13 @@ limitations under the License.
 			func: function(){
 				return $.request.queryPath;
 			}
-		},
+		}, 
 		path: {
 			type: "s",
 			func: function(){
 				return $.request.path;
 			}
-		},
+		}, 
 		params: {
 			type: "s",
 			func: function(){
@@ -69,17 +69,17 @@ limitations under the License.
 			}
 		}
 	};
-
+	
 	function handleBatchStart(){
 		var xlsxWorkbook = new xlsx.Workbook();
 		return xlsxWorkbook;
 	}
-
+	
 	function handleBatchEnd(batchContext){
 		var archive = batchContext.pack();
 		return archive;
 	}
-
+	
 	function writeMetaFieldsToWorksheet(parameters, xlsxWorksheet){
 		var wb = xlsxWorksheet.getWorkbook();
 		var xw = xlsxWorksheet.getWriter();
@@ -146,18 +146,18 @@ limitations under the License.
 				xw.closeElement();	//v
 				xw.closeElement();	//c
 			}
-
+			
 			xw.closeElement();	//row
 		}
 		return i+1;
 	}
-
+		
 	function generateWorksheet(xlsxWorkbook, parameters, resultset) {
 		var sheetName = parameters.sheetname || "Sheet";
-                var sheetNamePattern = /^[^'\[\]/\\:?][^\[\]/\\:?]{0,30}$/;
+    var sheetNamePattern = /^[^'\[\]/\\:?][^\[\]/\\:?]{0,30}$/;
 		if (!sheetNamePattern.test(sheetName)) {
 		  throw "Sheetname \"" + sheetName + "\" does not match pattern /" + sheetNamePattern.source + "/."; 
-		}
+	  }
 		var name = sheetName, num = 0;
 		while (xlsxWorkbook.getSheetIndexByName(name) !== -1) {
 			name = sheetName + " " + (++num);
@@ -176,8 +176,8 @@ limitations under the License.
 
 		xlsxWorksheet.close();
 		return xlsxWorksheet;
-	}
-
+	}	
+	
 	function handleRequest(parameters, contentType, resultset){
 		try {
 			parameters = params.validate();
@@ -192,13 +192,13 @@ limitations under the License.
 			};
 		}
 		catch (e){
-			throw e.toString() + " - " + e.linenumber + " " + JSON.stringify(e.stack, "", " ");
+			throw e.toString() + " - " + JSON.stringify(e.stack, "", " ");
 		}
 	}
-
+	
 	exports.handleBatchStart = handleBatchStart;
 	exports.handleBatchPart = generateWorksheet;
 	exports.handleBatchEnd = handleBatchEnd;
 	exports.handleRequest = handleRequest;
-
+	
 }(this));

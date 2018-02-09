@@ -1,5 +1,5 @@
 /*
-Copyright 2016 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
+Copyright 2016 - 2018 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,8 +14,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(exports){
-	
-	var sql = $.import("sql.xsjslib");
+
+  var sql = $.import("sql.xsjslib");
+  
+  function parseHeader(parameters){
+    var headerInfo;
+    if (!parameters.header || parameters.header === "false") {
+      headerInfo = false;
+    } 
+    else
+    if (parameters.header === "true"){
+      headerInfo = true;
+    }
+    else { 
+      var headerStruct;
+      try {
+        headerStruct = JSON.parse(parameters.header);
+        //header was valid json and describes an array - each element is info for one column
+        if (headerStruct instanceof Array) {
+          headerInfo = headerStruct;
+        }
+        else {
+          throw "Error parsing header info"
+        }
+      }
+      catch (err) {
+        throw err;
+      }
+      
+    } 
+    return headerInfo;
+  }
 
 	function buildQuerySelectClause(req, parameters, query){
 		query.push("SELECT");
@@ -23,11 +52,40 @@ limitations under the License.
 		var select = parameters.$select;
 		if (select) {
 			select = select.split(",");
+			var headerInfo = parseHeader(parameters), headerInfoItem, colAlias;
 			var i, n = select.length;
 			for (i = 0; i < n; i++) {
+			  //TODO: checkIdentifier is actually not powerful enough to do this, since a column may be compound
+			  //(A compound identifier may include table and schema identifiers)
 				select[i] = sql.checkIdentifier(select[i], true);
+				if (headerInfo && headerInfo instanceof Array) {
+				  headerInfoItem = headerInfo[i];
+				  colAlias = null;
+				  switch (typeof(headerInfoItem)) {
+				    case "string":
+				      colAlias = headerInfoItem;
+				      break;
+				    case "object":
+				      if (typeof(headerInfoItem.label) === "string"){
+	              colAlias = headerInfoItem.label;
+				      }
+				      else {
+				        colAlias = null;
+				      }
+				      break;
+				    default:
+				      //ignore. Might throw an error instead
+				  }
+				  if (colAlias) {
+				    if (colAlias.charAt(0) !== "\"") {
+				      colAlias = "\"" + colAlias + "\"";
+				    }
+				    colAlias = sql.checkIdentifier(colAlias, true);
+				    select[i] += " AS " + colAlias;
+				  }
+				}
 			}
-			select = parameters.$select;
+			select = select.join(", ");
 		}
 		else {
 			select = "*";
@@ -252,9 +310,6 @@ limitations under the License.
 				break;
 			case "identifier":
 				str += sql.checkIdentifier(node.text);
-				break;
-			case "long":
-				str += parseFloat(node.text);
 				break;
 			case "number":
 			case "string":
