@@ -1,5 +1,5 @@
 /*
-Copyright 2016 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
+Copyright 2016 - 2018 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -115,11 +115,6 @@ var ODataFilterParser;
     "nullliteral": {
       "pattern": /null/,
       "type": optypes.operand
-    },
-    "long": {
-        "pattern": /([-]?[0-9]+)L/,
-        "type": optypes.operand,
-        "dataType": "number"
     },
     "number": {
       "pattern": /-?(0|[1-9]\d*)(\.\d+)?([eE][\+\-]?\d+)?/,

@@ -1,5 +1,5 @@
 /*
-Copyright 2016 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
+Copyright 2016 - 2018 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ var entities = {
 	"'": "&apos;",
 	"\"": "&quot;"
 };
-
-
+  
+ 
 function escapeXmlText(value) {
 	if (typeof value !== "string") {
 		return value;
@@ -32,8 +32,8 @@ function escapeXmlText(value) {
 		return entities[match];
 	});
 }
-
-
+  
+ 
 function escapeXmlAttribute(value) {
 	if (typeof value !== "string") {
 		return value;
@@ -42,20 +42,20 @@ function escapeXmlAttribute(value) {
 		return entities[match];
 	});
 }
-
+	
 var XmlWriter;
 XmlWriter = function(){
 	this.buffer = [];
 	this.elementStack = [];
 	this.namespaceStack = [];
-	this.elementOpen = false;
+  this.elementOpen = false;
 };
 XmlWriter.prototype = {
 	setDefaultNs: function(namespace){
 		this.defaultNamespace = namespace;
 	},
 	getNsPrefix: function(namespace){
-		if (namespace === "http://www.w3.org/XML/1998/namespace" || namespace === "xml"){
+		if (namespace === "http://www.w3.org/XML/1998/namespace" || namespace === "xml"){ 
 			return "xml";
 		}
 		var namespaceStack = this.namespaceStack;
@@ -157,7 +157,7 @@ XmlWriter.prototype = {
 		if (!this.elementOpen) {
 			throw "No opened element";
 		}
-
+		
 		if (ns) {
 			ns = this.getNsPrefix(ns);
 		}
@@ -186,15 +186,15 @@ XmlWriter.prototype = {
 		return this.buffer.join("");
 	},
 	clear: function(){
+	  this.elementOpen = false;
 		this.buffer.length = 0;
 		this.elementStack.length = 0;
 		this.namespaceStack.length = 0;
-		this.elementOpen = false;
-	}
+	} 
 };
 
 exports.XmlWriter = XmlWriter;
 exports.escapeXmlText = escapeXmlText;
 exports.escapeXmlAttribute = escapeXmlAttribute;
-
+	
 }(this));

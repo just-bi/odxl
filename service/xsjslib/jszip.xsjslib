@@ -1,5 +1,5 @@
 (function(exports){
-
+  
   /*!
 
   JSZip - A Javascript class for generating and reading zip files
@@ -16,7 +16,7 @@
     else if("function"==typeof define&&define.amd)define([],e);
     else{
       var f;
-      "undefined"!=typeof exports?f=exports:"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.JSZip=e();
+      "undefined"!=typeof exports?f=exports:"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.JSZip=e()
     }
   }(function(){
     var define,module,exports;
@@ -28,12 +28,12 @@
                 var a=typeof require=="function"&&require;
                 if(!u&&a)return a(o,!0);
                 if(i)return i(o,!0);
-                throw new Error("Cannot find module '"+o+"'");
+                throw new Error("Cannot find module '"+o+"'")
               }
               var f=n[o]={
                   exports:{}
               };
-              t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e);},f,f.exports,e,t,n,r);}return n[o].exports;}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s;})({1:[function(_dereq_,module,exports){
+              t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
   'use strict';
   // private property
   var _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -626,7 +626,7 @@
       return Buffer.isBuffer(b);
   };
 
-}).call(this,(typeof Buffer !== "undefined" ? Buffer : undefined));
+  }).call(this,(typeof Buffer !== "undefined" ? Buffer : undefined))
   },{}],12:[function(_dereq_,module,exports){
   'use strict';
   var Uint8ArrayReader = _dereq_('./uint8ArrayReader');
@@ -1001,7 +1001,7 @@
           result.crc32 = file._data.crc32;
 
           if (result.uncompressedSize === 0 || file.dir) {
-              compression = compressions.STORE;
+              compression = compressions['STORE'];
               result.compressedContent = "";
               result.crc32 = 0;
           }
@@ -1018,7 +1018,7 @@
           // have uncompressed data
           content = getBinaryData(file);
           if (!content || content.length === 0 || file.dir) {
-              compression = compressions.STORE;
+              compression = compressions['STORE'];
               content = "";
           }
           result.uncompressedSize = content.length;
@@ -1650,7 +1650,7 @@
       }
   }
 
-}).call(this,(typeof Buffer !== "undefined" ? Buffer : undefined));
+  }).call(this,(typeof Buffer !== "undefined" ? Buffer : undefined))
   },{}],18:[function(_dereq_,module,exports){
   'use strict';
   var DataReader = _dereq_('./dataReader');
@@ -2094,13 +2094,13 @@
   var transform = {};
 
   // string to ?
-  transform.string = {
+  transform["string"] = {
       "string": identity,
       "array": function(input) {
           return stringToArrayLike(input, new Array(input.length));
       },
       "arraybuffer": function(input) {
-          return transform.string.uint8array(input).buffer;
+          return transform["string"]["uint8array"](input).buffer;
       },
       "uint8array": function(input) {
           return stringToArrayLike(input, new Uint8Array(input.length));
@@ -2111,7 +2111,7 @@
   };
 
   // array to ?
-  transform.array = {
+  transform["array"] = {
       "string": arrayLikeToString,
       "array": identity,
       "arraybuffer": function(input) {
@@ -2126,7 +2126,7 @@
   };
 
   // arraybuffer to ?
-  transform.arraybuffer = {
+  transform["arraybuffer"] = {
       "string": function(input) {
           return arrayLikeToString(new Uint8Array(input));
       },
@@ -2143,7 +2143,7 @@
   };
 
   // uint8array to ?
-  transform.uint8array = {
+  transform["uint8array"] = {
       "string": arrayLikeToString,
       "array": function(input) {
           return arrayLikeToArrayLike(input, new Array(input.length));
@@ -2158,13 +2158,13 @@
   };
 
   // nodebuffer to ?
-  transform.nodebuffer = {
+  transform["nodebuffer"] = {
       "string": arrayLikeToString,
       "array": function(input) {
           return arrayLikeToArrayLike(input, new Array(input.length));
       },
       "arraybuffer": function(input) {
-          return transform.nodebuffer.uint8array(input).buffer;
+          return transform["nodebuffer"]["uint8array"](input).buffer;
       },
       "uint8array": function(input) {
           return arrayLikeToArrayLike(input, new Uint8Array(input.length));
@@ -3852,9 +3852,9 @@
   // Small size is preferable.
 
   function adler32(adler, buf, len, pos) {
-    var s1 = (adler & 0xffff) |0,
-        s2 = ((adler >>> 16) & 0xffff) |0,
-        n = 0;
+    var s1 = (adler & 0xffff) |0
+      , s2 = ((adler >>> 16) & 0xffff) |0
+      , n = 0;
 
     while (len !== 0) {
       // Set limit ~ twice less than 5552, to keep
@@ -3953,8 +3953,8 @@
 
 
   function crc32(crc, buf, len, pos) {
-    var t = crcTable,
-        end = pos + len;
+    var t = crcTable
+      , end = pos + len;
 
     crc = crc ^ (-1);
 
@@ -5753,7 +5753,7 @@
                          // but leave for few code modifications
 
     //
-    // Setup limits is not necessary because in js we should not preallocate memory
+    // Setup limits is not necessary because in js we should not preallocate memory 
     // for inflate use constant limit in 65536 bytes
     //
 
@@ -9177,7 +9177,7 @@
 
   module.exports = ZStream;
   },{}]},{},[9])
-  (9);
+  (9)
   });
-
+  
 }(this));

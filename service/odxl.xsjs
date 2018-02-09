@@ -1,5 +1,5 @@
 /*
-Copyright 2016 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
+Copyright 2016 - 2018 Just-BI BV, Roland Bouman (roland.bouman@just-bi.nl)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ limitations under the License.
 						error.raise("getData", null, "Invalid schema name", e);
 						break;
 					default:
-						throw e;
+					  error.raise("getData", null, "Other", e);
 				}
 			}
 			else {
@@ -126,7 +126,14 @@ limitations under the License.
 		}
 		if (contentType === undefined) {
 			httpStatus = $.net.http.NOT_ACCEPTABLE;
-			error.raise("getContentType", null, "Can't find suitable content type for format.");
+      var msg;
+      if (typeof(format) === "undefined") {
+        msg = "Cannot determine target content type: Neither $format nor HTTP Accept header specified."
+      }
+      else {
+        msg = "Can't find suitable content type for specified format: " + format;
+      }
+      error.raise("getContentType", null, msg);
 		}
 		return contentType;
 	}
@@ -309,12 +316,13 @@ limitations under the License.
 		}
 	});
 
-	function main(){
+	function main(){		
 		try {
 			var response = handleRequest({
 				"GET": handleGetRequest,
 				"POST": handlePostRequest
 			});
+			
 			var header, value, headers = response.headers;
 			for (header in headers) {
 				if (headers.hasOwnProperty(header)) {
