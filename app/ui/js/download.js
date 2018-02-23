@@ -278,7 +278,7 @@ function buildODataQuery(){
 	var selector, selectedIndex;	
 	var columnName, columnNames = [];
 	var select = [];
-	var header = [];
+	var header = [], headerItem;
 	var ordinal = {};
 	var orderby = {};
 	var ascdesc = {};
@@ -287,6 +287,8 @@ function buildODataQuery(){
 	rows = columnsTable.rows;
 	n = rows.length
 	for (i = 1, c = 0; i < n; i++, c++) {
+	    headerItem = {};
+	    header.push(headerItem);
 		row = rows[i];
 		columnName = row.getAttribute("data-COLUMN_NAME");
 		columnNames[c] = columnName;
@@ -303,7 +305,7 @@ function buildODataQuery(){
 				case "columnName":
 					break;
                 case "columnLabel":
-                    header.push(cell.firstChild.value || columnName);
+                    headerItem.label = cell.firstChild.value || columnName;
                     break;
 				case "ordinal":
 					selector = cell.firstChild;
