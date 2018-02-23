@@ -57,7 +57,7 @@ limitations under the License.
 			for (i = 0; i < n; i++) {
 			  //TODO: checkIdentifier is actually not powerful enough to do this, since a column may be compound
 			  //(A compound identifier may include table and schema identifiers)
-				select[i] = sql.checkIdentifier(select[i], true);
+				select[i] = sql.checkIdentifier(select[i].trim(), true);
 				if (headerInfo && headerInfo instanceof Array) {
 				  headerInfoItem = headerInfo[i];
 				  colAlias = null;

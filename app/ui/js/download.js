@@ -278,6 +278,7 @@ function buildODataQuery(){
 	var selector, selectedIndex;	
 	var columnName, columnNames = [];
 	var select = [];
+	var header = [];
 	var ordinal = {};
 	var orderby = {};
 	var ascdesc = {};
@@ -301,6 +302,9 @@ function buildODataQuery(){
 					break;
 				case "columnName":
 					break;
+                case "columnLabel":
+                    header.push(cell.firstChild.value || columnName);
+                    break;
 				case "ordinal":
 					selector = cell.firstChild;
 					selectedIndex = selector.selectedIndex;
@@ -473,6 +477,7 @@ function buildODataQuery(){
 	if (topInput.value) {
 		options.$top= topInput.value;
 	}
+    options.header = JSON.stringify(header);
 
 	var query = "";
 	for (k in options) {
@@ -552,7 +557,7 @@ function createAscDescSelector(){
 	return createOptionsSelector(operators, buildODataQuery);
 }
 
-function createInput(row, item){
+function createValueInput(row, item){
 	var cells = row.cells, cell;
 	cell = row.insertCell(cells.length);
 	cell.className = "value";
@@ -624,10 +629,18 @@ function createInput(row, item){
 	cell.appendChild(input);	
 }
 
+function getColumnLabel(columnName){
+  var parts = columnName.split(/_+/g);
+  parts = parts.map(function(part){
+    return part.charAt(0).toUpperCase() + part.substr(1).toLowerCase();
+  });
+  return parts.join(" ");
+}
+
 function populateColumns(data){
 	var i, n = data.length, item, prop;
 	var rows = columnsTable.rows, row, cells, cell;
-	var checkbox, input, inputType, min, max, step, dataType;
+	var checkbox, input, inputType, min, max, step, dataType, labelInput;
 
 	row = columnsTable.insertRow(rows.length);
 	row.className = "header";
@@ -639,6 +652,9 @@ function populateColumns(data){
 	cell = row.insertCell(cells.length);
 	cell.innerHTML = "Column";
 
+    cell = row.insertCell(cells.length);
+    cell.innerHTML = "Label";
+	
 	cell = row.insertCell(cells.length);
 	cell.innerHTML = "Type";
 
@@ -676,9 +692,15 @@ function populateColumns(data){
 		cell = row.insertCell(cells.length);
 		cell.className = "columnName";
 		cell.innerHTML = item.COLUMN_NAME;
+		
+        cell = row.insertCell(cells.length);
+        cell.className = "columnLabel";
+        labelInput = document.createElement("INPUT");
+        labelInput.value = getColumnLabel(item.COLUMN_NAME);
+        cell.appendChild(labelInput);
 
 		cell = row.insertCell(cells.length);
-		cell.className = "columnName";
+		cell.className = "dataType";
 		dataType = item.DATA_TYPE_NAME;
 		cell.innerHTML = dataType;
 
@@ -698,7 +720,7 @@ function populateColumns(data){
 		cell.className = "operator";
 		cell.appendChild(createOperatorSelector());
 
-		createInput(row, item);
+		createValueInput(row, item);
 	}
 	updateTableControlsVisibility();
 	buildODataQuery();
@@ -756,7 +778,7 @@ function downloadWorkbook(){
             alert("Error: " + xhr.statusText + "\n" + fileReader.result);
           });
           fileReader.readAsText(blob);
-	  return;
+          return;
         }
         url = window.URL.createObjectURL(blob);
         var a = document.createElement("a");
