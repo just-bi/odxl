@@ -16,6 +16,7 @@ limitations under the License.
 (function(exports){
 
   var sql = $.import("sql.xsjslib");
+  var err = $.import("error.xsjslib");
   
   function parseHeader(parameters){
     var headerInfo;
@@ -35,7 +36,7 @@ limitations under the License.
           headerInfo = headerStruct;
         }
         else {
-          throw "Error parsing header info"
+          throw "Error parsing header info";
         }
       }
       catch (err) {
@@ -61,13 +62,13 @@ limitations under the License.
 				if (headerInfo && headerInfo instanceof Array) {
 				  headerInfoItem = headerInfo[i];
 				  colAlias = null;
-				  switch (typeof(headerInfoItem)) {
+				  switch (typeof headerInfoItem) {
 				    case "string":
 				      colAlias = headerInfoItem;
 				      break;
 				    case "object":
 				      if (typeof(headerInfoItem.label) === "string"){
-	              colAlias = headerInfoItem.label;
+				        colAlias = headerInfoItem.label;
 				      }
 				      else {
 				        colAlias = null;
@@ -109,12 +110,9 @@ limitations under the License.
 		query.push(stmt);
 	}
 
-	function odataFilterPrecedenceParser(filter){
-		var tokenizer = new tokenizer.Tokenizer();
-	}
-
 	function translateFilterParseTreeToSql(node){
 		var str = "";
+		var needle, haystack, string;
 		switch (node.type) {
 			case "lparen":
 				str += "(" + translateFilterParseTreeToSql(node.operand) + ")";
@@ -154,14 +152,12 @@ limitations under the License.
 				    str += "'" + left.text + "' = '" + right.text + "'";
 				  }
 				  else {
-				    var bool, exp;
+				    var exp;
 				    if (left.type === "boolliteral") {
 				      exp = translateFilterParseTreeToSql(right);
-				      bool = left.text;
 				    }
 				    else {
-              exp = translateFilterParseTreeToSql(left);
-              bool = right.text;
+				      exp = translateFilterParseTreeToSql(left);
 				    }
 				    if (node.text === "ne") {
 				      exp = "NOT(" + exp + ")";
@@ -201,13 +197,13 @@ limitations under the License.
 			case "funcSubstringOf":
 				//TODO: verify that OData's subtringof() returns false if the second argument is empty
 				//(because that's what we implemented with LOCATE https://help.sap.com/saphelp_hanaone/helpdata/en/20/e3b6b77519101485e6bd62f7018f75/content.htm)
-				var needle = translateFilterParseTreeToSql(node.args[0]);
-				var haystack = translateFilterParseTreeToSql(node.args[1]);
+				needle = translateFilterParseTreeToSql(node.args[0]);
+				haystack = translateFilterParseTreeToSql(node.args[1]);
 				str += "(IFNULL(LOCATE(" + haystack + ", " + needle + "), 0) != 0)";
 				break;
 			case "funcCheckWithSubstring":
-				var haystack = translateFilterParseTreeToSql(node.args[0]);
-				var needle = translateFilterParseTreeToSql(node.args[1]);
+				haystack = translateFilterParseTreeToSql(node.args[0]);
+				needle = translateFilterParseTreeToSql(node.args[1]);
 				switch (node.funcName) {
 					case "endswith":
 						str += "RIGHT(" + haystack + ", LENGTH(" + needle + ")) = " + needle;
@@ -216,27 +212,26 @@ limitations under the License.
 						str += "LEFT(" + haystack + ", LENGTH(" + needle + ")) = " + needle;
 						break;
 					default:
-						httpStatus = $.net.http.INTERNAL_SERVER_ERROR;
 						throw "Unexpected error parsing OData expression: unexpected funcCheckWithSubstring \"" + node.funcName + "\".";
 				}
 				break;
 			case "funcLength":
-				var string = translateFilterParseTreeToSql(node.args[0]);
+				string = translateFilterParseTreeToSql(node.args[0]);
 				str += "LENGTH(" + string + ")";
 				break;
 			case "funcIndexOf":
-				var haystack = translateFilterParseTreeToSql(node.args[0]);
-				var needle = translateFilterParseTreeToSql(node.args[1]);
+				haystack = translateFilterParseTreeToSql(node.args[0]);
+				needle = translateFilterParseTreeToSql(node.args[1]);
 				str += "(LOCATE(" + haystack + "," + needle + ") - 1)";
 				break;
 			case "funcReplace":
-				var string = translateFilterParseTreeToSql(node.args[0]);
+				string = translateFilterParseTreeToSql(node.args[0]);
 				var search = translateFilterParseTreeToSql(node.args[1]);
 				var replace = translateFilterParseTreeToSql(node.args[2]);
 				str += "REPLACE(" + string + ", " + search + ", " + replace + ")";
 				break;
 			case "funcSubstring":
-				var string = translateFilterParseTreeToSql(node.args[0]);
+				string = translateFilterParseTreeToSql(node.args[0]);
 				var pos = translateFilterParseTreeToSql(node.args[1]);
 				str += "SUBSTRING(" + string + ", 1 + (" + pos + ")";
 				if (node.args.length === 3) {
@@ -246,7 +241,7 @@ limitations under the License.
 				str += ")";
 				break;
 			case "funcConvertCase":
-				var string = translateFilterParseTreeToSql(node.args[0]);
+				string = translateFilterParseTreeToSql(node.args[0]);
 				switch (node.funcName){
 					case "tolower":
 						str += "LCASE(" + string + ")";
@@ -255,12 +250,11 @@ limitations under the License.
 						str += "UCASE(" + string + ")";
 						break;
 					default:
-						httpStatus = $.net.http.INTERNAL_SERVER_ERROR;
 						throw "Unexpected error parsing OData expression: unexpected funcConvertCase \"" + node.funcName + "\".";
 				}
 				break;
 			case "funcTrim":
-				var string = translateFilterParseTreeToSql(node.args[0]);
+				string = translateFilterParseTreeToSql(node.args[0]);
 				str += "TRIM(" + string + ")";
 				break;
 			case "funcConcat":
@@ -304,7 +298,6 @@ limitations under the License.
 						str += "FLOOR(" + num + " + 1)";
 						break;
 					default:
-						httpStatus = $.net.http.INTERNAL_SERVER_ERROR;
 						throw "Unexpected error parsing OData expression: unexpected funcRoundFloorCeiling \"" + node.funcName + "\".";
 				}
 				break;
@@ -343,7 +336,7 @@ limitations under the License.
 		var i, n = orderby.length;
 		for (i = 0; i < n; i++) {
 			if (!/^\s*(\"[^\"]+\"|[_A-Z][A-Z0-9_#$]*)(\s+(asc|desc)\s*)?$/.test(orderby[i])) {
-				error.raise("buildQuery", null, "Invalid orderby clause.");
+				err.raise("buildQuery", null, "Invalid orderby clause.");
 			}
 		}
 		query.push("ORDER BY");
