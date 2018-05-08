@@ -29,6 +29,8 @@ Here are the steps if you just want to use ODXL, and currently have no need to a
 1. In HANA Studio/Eclipse, create a new HANA xs project. Alternatively, find an existing HANA xs project.
 2. Find the ODXL repository on github, and download the project as a zipped folder. (Select a particular branch if you desire so; typically you'll want to get the master branch)
 3. Extract the project from the zip. This will yield a folder. Copy its contents, and place them into your xs project directory (or one of its sub directories)
+3a. ODXL comes with a sample app that uses a number of Calculation views. The calculation views used in odxl_user_objects.xsodata are referenced by the package name system-local.public.rbouman.odxl.app.models. To activate the object correctly the project has to be installed into this package. Alternatively, you can modify the views to reflect the your own installation package.
+
 4. Activate the new content.
 
 After taking these steps, you should now have a working ODXL service, as well as a sample application.
