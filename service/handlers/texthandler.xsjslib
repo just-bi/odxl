@@ -15,21 +15,21 @@ limitations under the License.
 */
 (function(exports){
 
-	function handleRequest(parameters, contentType, resultset){
-		try {
-			var body = resultset;
-			return {
-				body: body,
-				headers: {
-					"Content-Type": contentType
-				}
-			};
-		}
-		catch (e){
-			throw e.toString() + " - " + e.linenumber + " " + JSON.stringify(e.stack, "", " ");
-		}
-	}
+  function handleRequest(parameters, contentType, resultset){
+    try {
+      var body = resultset;
+      return {
+        body: body,
+        headers: {
+          "Content-Type": contentType
+        }
+      };
+    }
+    catch (e){
+      throw e.toString() + " - " + e.linenumber + " " + JSON.stringify(e.stack, "", " ");
+    }
+  }
 
-	exports.handleRequest = handleRequest;
+  exports.handleRequest = handleRequest;
 
 }(this));

@@ -18,7 +18,7 @@ limitations under the License.
 function createCallback(callback, args) {
     var scope, func;
     if (!args) {
-    	args = [];
+      args = [];
     }
     switch (typeof callback) {
         case "function":
@@ -31,7 +31,7 @@ function createCallback(callback, args) {
             };
         case "object":
             if (!callback.scope) {
-            	callback.scope = null;
+              callback.scope = null;
             }
             callback.args = callback.args ? args.concat(callback.args) : callback.args;
             return callback;
@@ -71,10 +71,10 @@ Tokenizer.prototype = {
                 tokenDef = tokenDefs[name];
                 pattern = (tokenDef.constructor === RegExp ? tokenDef : tokenDef.pattern).source;
                 if (pattern === ".") {
-                	defaultToken = name;
+                  defaultToken = name;
                 }
                 if (regexp.length) {
-                	regexp += "|";
+                  regexp += "|";
                 }
                 regexp += "(" + pattern + ")";
                 pattern = pattern.replace(/\\\\/g, "").replace(/\\\(/g, "");
@@ -90,7 +90,7 @@ Tokenizer.prototype = {
                 attributes = tokenDef.attributes;
                 if (attributes) {
                     for (attributeName in attributes) {
-                    	if (attributes.hasOwnProperty(attributeName)) {
+                      if (attributes.hasOwnProperty(attributeName)) {
                             attribute = attributes[attributeName];
                             switch (typeof attribute) {
                                 case "number":
@@ -106,11 +106,11 @@ Tokenizer.prototype = {
                                 case "object":
                                     break;
                             }
-                    	}
+                      }
                     }
                 }
                 else {
-                	tokenDef.attributes = {
+                  tokenDef.attributes = {
                         text: {
                             group: 0
                         }
@@ -118,15 +118,15 @@ Tokenizer.prototype = {
                 }
                 callback = tokenDef.callback;
                 if (callback) {
-                	tokenType.callback = createCallback(callback, [null, null]);
+                  tokenType.callback = createCallback(callback, [null, null]);
                 }
                 tokenTypes[name] = tokenType;
             }
         ;
         for (name in tokenDefs) {
-        	if (tokenDefs.hasOwnProperty(name)) {
-            	initToken(name);
-        	}
+          if (tokenDefs.hasOwnProperty(name)) {
+              initToken(name);
+          }
         }
         if (!defaultToken) {
             tokenDefs = {
@@ -135,7 +135,7 @@ Tokenizer.prototype = {
             initToken("default");
         }
         if (config.ignoreCase) {
-        	flags += "i";
+          flags += "i";
         }
         this.regexp = new RegExp(regexp, flags);
         if (config.exclude !== undefined) {
@@ -173,7 +173,7 @@ Tokenizer.prototype = {
     one: function() {
         var match = this.regexp.exec(this._text);
         if (!match) {
-        	return null;
+          return null;
         }
         var text = match[0],
             at = match.index,
@@ -188,12 +188,12 @@ Tokenizer.prototype = {
             tokenType = tokenTypes[name];
             group = tokenType.group;
             if (text !== match[group]) {
-            	continue;
+              continue;
             }
             tokenDef = tokenType.tokenDef;
             tokenTypeName = tokenType.name;
             if (exclude && exclude[tokenTypeName]) {
-            	return this.one();
+              return this.one();
             }
             token = {
                 type: tokenTypeName,
@@ -202,7 +202,7 @@ Tokenizer.prototype = {
 
             attributes = tokenDef.attributes;
             for (name in attributes) {
-            	if(attributes.hasOwnProperty(name)) {
+              if(attributes.hasOwnProperty(name)) {
                     attribute = attributes[name];
                     if (attribute.group === undefined) {
                       attributeValue = text;
@@ -234,7 +234,7 @@ Tokenizer.prototype = {
                             break;
                     }
                     token[name] = attributeValue;
-            	}
+              }
             }
 
             callback = tokenType.callback;
@@ -262,11 +262,11 @@ Tokenizer.prototype = {
             token
         ;
         while (this.more()) {
-        	token = this.one();
+          token = this.one();
             if (token) {
-            	args[0] = token;
+              args[0] = token;
                 if (func.apply(scope, args) === false) {
-                	return false;
+                  return false;
                 }
             }
         }

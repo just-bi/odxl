@@ -15,28 +15,28 @@ limitations under the License.
 */
 (function(exports){
 
-	function handleRequest(parameters, contentType, resultset){
-		try {
-			var body = "";
-			resultset.iterate(function(rownum, row){
-			  if (rownum) {
-			    body += "\n,";
-			  }
-			  body += JSON.stringify(row);
-			});
-			body = "{\"d\":{\"results\":[" + body + "]}}";
-			return {
-				body: body,
-				headers: {
-					"Content-Type": contentType
-				}
-			};
-		}
-		catch (e){
-			throw e.toString() + " - " + e.linenumber + " " + JSON.stringify(e.stack, "", " ");
-		}
-	}
+  function handleRequest(parameters, contentType, resultset){
+    try {
+      var body = "";
+      resultset.iterate(function(rownum, row){
+        if (rownum) {
+          body += "\n,";
+        }
+        body += JSON.stringify(row);
+      });
+      body = "{\"d\":{\"results\":[" + body + "]}}";
+      return {
+        body: body,
+        headers: {
+          "Content-Type": contentType
+        }
+      };
+    }
+    catch (e){
+      throw e.toString() + " - " + e.linenumber + " " + JSON.stringify(e.stack, "", " ");
+    }
+  }
 
-	exports.handleRequest = handleRequest;
+  exports.handleRequest = handleRequest;
 
 }(this));

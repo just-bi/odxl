@@ -59,38 +59,38 @@ limitations under the License.
   zipInterface = getDefaultZipInterface();
 
   function generateArchiveWithNativeZip(contents){
-	  var archive = new $.util.Zip();
-	  var k;
-	  for (k in contents) {
-		  archive[k] = contents[k]
-	  }
+    var archive = new $.util.Zip();
+    var k;
+    for (k in contents) {
+      archive[k] = contents[k]
+    }
       return archive;
   }
 
   function generateArchiveWithJsZip(contents){
-	  var jsZip = $.import("jszip.xsjslib");
-	  var archive = new jsZip.JSZip();
+    var jsZip = $.import("jszip.xsjslib");
+    var archive = new jsZip.JSZip();
 
-	  var k;
-	  for (k in contents) {
-		  archive.file(k, contents[k]);
-	  }
+    var k;
+    for (k in contents) {
+      archive.file(k, contents[k]);
+    }
 
-	  archive = archive.generate({
-		 compression: "DEFLATE",
-		 type: "arraybuffer"
-	  });
-	  return archive;
+    archive = archive.generate({
+     compression: "DEFLATE",
+     type: "arraybuffer"
+    });
+    return archive;
   }
   
   function generateArchive(contents){
     var zipInterfaces = {
-    	"$.util.Zip": generateArchiveWithNativeZip,
-    	"jszip.xsjslib": generateArchiveWithJsZip
+      "$.util.Zip": generateArchiveWithNativeZip,
+      "jszip.xsjslib": generateArchiveWithJsZip
     };
     var zInterface = zipInterfaces[zipInterface];
     if (zInterface === undefined) {
-    	error.raise("generateArchive", null, "No handler for zip interface " + zipInterface);
+      error.raise("generateArchive", null, "No handler for zip interface " + zipInterface);
     }
     var archive = zInterface(contents);
     return archive;
