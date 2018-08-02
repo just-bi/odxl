@@ -305,6 +305,8 @@ limitations under the License.
 				str += sql.checkIdentifier(node.text);
 				break;
 			case "number":
+				str += String(parseFloat(node.text));
+				break;
 			case "string":
 				str += node.text;
 				break;
