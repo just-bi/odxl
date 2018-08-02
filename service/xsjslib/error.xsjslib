@@ -14,26 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(exports){
-	
+  
 /*********************************************
 * 
-* 	Error handling
+*   Error handling
 * 
 ********************************************/
-	function throwError(func, args, message, error){
-		args = null;
-		var err = new Error(func + "(" + (args ? JSON.stringify(args) : "no args") + ")" + ": " + message);
-		err.parent = error;
-		err.toString = function(){
-			var str = Error.prototype.toString.call(this);
-			if (this.parent) {
-				str += "\n" + this.parent.toString();
-			}
-			return str;
-		};
-		throw err;
-	}
-	
-	exports.raise = throwError;
-	
+  function throwError(func, args, message, error){
+    args = null;
+    var err = new Error(func + "(" + (args ? JSON.stringify(args) : "no args") + ")" + ": " + message);
+    err.parent = error;
+    err.toString = function(){
+      var str = Error.prototype.toString.call(this);
+      if (this.parent) {
+        str += "\n" + this.parent.toString();
+      }
+      return str;
+    };
+    throw err;
+  }
+  
+  exports.raise = throwError;
+  
 }(this));
